@@ -25,7 +25,7 @@ var mem = MemStorage{
 
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(http.StatusOK)
+    w.WriteHeader(http.StatusBadRequest)
 }
 
 func handleUpdate (w http.ResponseWriter, r *http.Request) {
@@ -33,12 +33,12 @@ func handleUpdate (w http.ResponseWriter, r *http.Request) {
     //Content-Type: text/plain
 
     if r.Method != http.MethodPost {
-        http.Error(w, "Incorrect HTTP method", http.StatusBadRequest)
+        http.Error(w, "Incorrect HTTP method", http.StatusMethodNotAllowed)
     }
 
     url := strings.Split(r.URL.Path,"/")
     if len(url) < 5 {
-        http.Error(w, "Missed data in POST Request", http.StatusBadRequest)
+        http.Error(w, "Missed data in POST Request", http.StatusNotFound)
         return
     }
     switch url[2] {
