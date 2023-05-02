@@ -7,20 +7,13 @@ import (
 //     "encoding/json"
     "strings"
     "strconv"
+    s "github.com/shipherman/go-metrics/internal/storage"
 )
 
 
-type counter int64
-type gauge float64
-
-type MemStorage struct {
-    counterData map[string]counter
-    gaugeData map[string]gauge
-}
-
-var mem = MemStorage{
-    map[string]counter{},
-    map[string]gauge{},
+var mem = s.MemStorage{
+    map[string]s.Counter{},
+    map[string]s.Gauge{},
 }
 
 
@@ -47,7 +40,7 @@ func handleUpdate (w http.ResponseWriter, r *http.Request) {
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
             } else {
-                mem.counterData[url[3]] += counter(i)
+                mem.CounterData[url[3]] += s.Counter(i)
                 w.WriteHeader(http.StatusOK)
             }
         case "gauge":
@@ -55,13 +48,13 @@ func handleUpdate (w http.ResponseWriter, r *http.Request) {
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
             } else {
-                mem.gaugeData[url[3]] = gauge(i)
+                mem.GaugeData[url[3]] = s.Gauge(i)
                 w.WriteHeader(http.StatusOK)
             }
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }
-    fmt.Println(&mem)
+     fmt.Println(&mem)
 }
 
 func main() {
