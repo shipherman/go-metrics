@@ -17,11 +17,11 @@ var mem = s.MemStorage{
 }
 
 
-func handleMain(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(http.StatusBadRequest)
+func HandleMain(w http.ResponseWriter, r *http.Request) {
+    http.Error(w, "BadRequest", http.StatusBadRequest)
 }
 
-func handleUpdate (w http.ResponseWriter, r *http.Request) {
+func HandleUpdate (w http.ResponseWriter, r *http.Request) {
     //http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>,
     //Content-Type: text/plain
 
@@ -60,8 +60,8 @@ func handleUpdate (w http.ResponseWriter, r *http.Request) {
 func main() {
     //run server
     server := http.NewServeMux()
-    server.HandleFunc(`/`, handleMain)
-    server.HandleFunc(`/update/`, handleUpdate)
+    server.HandleFunc(`/`, HandleMain)
+    server.HandleFunc(`/update/`, HandleUpdate)
     err := http.ListenAndServe(":8080", server)
     if err != nil {
         panic(err)
