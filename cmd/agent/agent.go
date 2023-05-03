@@ -38,7 +38,7 @@ func SendPostRequest (req string) error {
         if err != nil {
             return err
         }
-        return errors.New(fmt.Sprintf(("%s: %s; %s"),
+        return fmt.Errorf("%s: %s; %s"),
                           "Can't send report to the server",
                           resp.Status,
                           line))

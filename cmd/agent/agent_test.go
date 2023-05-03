@@ -45,10 +45,10 @@ func TestSendPostRequest (t *testing.T) {
                 value: "ab",
             },
             // adding new line into format string as http server do
-            wanterr: errors.New(fmt.Sprintf(("%s: %s; %s\n"),
-                                           "Can't send report to the server",
-                                           "400 Bad Request",
-                                           response)),
+            wanterr: fmt.Errorf("%s: %s; %s\n",
+                                "Can't send report to the server",
+                                "400 Bad Request",
+                                response),
             wantcode: http.StatusBadRequest,
         },
     }
