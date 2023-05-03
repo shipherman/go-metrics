@@ -6,7 +6,7 @@ import (
 
     "net/http/httptest"
     "net/http"
-    "errors"
+//     "errors"
 
     "github.com/stretchr/testify/assert"
 )
