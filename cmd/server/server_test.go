@@ -6,6 +6,9 @@ import (
     "net/http"
     "net/http/httptest"
     "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+
+
 )
 
 
@@ -39,6 +42,9 @@ func TestHandleMain (t *testing.T){
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
+
+            err := result.Body.Close()
+            require.NoError(t, err)
         })
     }
 }
@@ -108,6 +114,9 @@ func TestHandleUpdate (t *testing.T) {
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
+
+            err := result.Body.Close()
+            require.NoError(t, err)
         })
     }
 }

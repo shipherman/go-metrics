@@ -1,7 +1,7 @@
 package main
 
 import (
-     "fmt"
+//      "fmt"
     "net/http"
 //     "io"
 //     "encoding/json"
@@ -54,7 +54,7 @@ func HandleUpdate (w http.ResponseWriter, r *http.Request) {
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }
-     fmt.Println(&mem)
+//      fmt.Println(&mem)
 }
 
 func main() {
