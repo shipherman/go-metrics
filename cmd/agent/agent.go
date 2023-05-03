@@ -1,16 +1,12 @@
 package main
 
 import (
-    "errors"
     "fmt"
     "io"
 //     "encoding/json"
     "net/http"
     "net/url"
-//     "runtime"
     "time"
-//     "math/rand"
-//     "strconv"
     s "github.com/shipherman/go-metrics/internal/storage"
 )
 
@@ -38,10 +34,10 @@ func SendPostRequest (req string) error {
         if err != nil {
             return err
         }
-        return fmt.Errorf("%s: %s; %s"),
+        return fmt.Errorf("%s: %s; %s",
                           "Can't send report to the server",
                           resp.Status,
-                          line))
+                          line)
     }
     return nil
 }
