@@ -12,8 +12,8 @@ import (
 
 
 var mem = s.MemStorage{
-    map[string]s.Counter{},
-    map[string]s.Gauge{},
+    CounterData: map[string]s.Counter{},
+    GaugeData: map[string]s.Gauge{},
 }
 
 
