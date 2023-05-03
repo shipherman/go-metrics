@@ -39,6 +39,7 @@ func SendPostRequest (req string) error {
                           resp.Status,
                           line)
     }
+    resp.Body.Close()
     return nil
 }
 

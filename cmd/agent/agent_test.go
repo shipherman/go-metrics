@@ -19,7 +19,7 @@ func TestSendPostRequest (t *testing.T) {
     }
 
     // http server response body
-    var response string = "response"
+    response := "response"
 
     tests := []struct {
         name string
