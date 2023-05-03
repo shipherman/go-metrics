@@ -25,9 +25,9 @@ var serverAddr = "http://localhost:8080/update/"
 var contentType = url.Values{"Content-type": {"text/plain"}}
 
 
-func SendPostRequest (dataType string, k, v any) error {
+func SendPostRequest (req string) error {
     //build request string
-    req := serverAddr + dataType + "/" + fmt.Sprintf("%v/%v",k,v)
+
     resp, err := http.PostForm(req, contentType)
     if err != nil {
         return err
@@ -50,14 +50,16 @@ func ProcessReport (data s.MemStorage) error {
 //     fmt.Println(data)
     for k, v := range data.GaugeData {
 //         fmt.Println(k,v)
-        err := SendPostRequest("gauge", k, v)
+        req := serverAddr + "gauge" + fmt.Sprintf("/%v/%v",k,v)
+        err := SendPostRequest(req)
         if err != nil {
             return err
         }
     }
     for k, v := range data.CounterData {
 //         fmt.Println(k,v)
-        err := SendPostRequest("counter", k, v)
+        req := serverAddr + "counter" + fmt.Sprintf("/%v/%v",k,v)
+        err := SendPostRequest(req)
         if err != nil {
             return err
         }
