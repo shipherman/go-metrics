@@ -1,7 +1,9 @@
 package main
 
 import (
-//     "fmt"
+//     "io"
+"fmt"
+    "strings"
     "testing"
     "net/http"
     "net/http/httptest"
@@ -108,9 +110,84 @@ func TestHandleUpdate (t *testing.T) {
     }
     for _, tc := range tests {
         t.Run(tc.name, func(t *testing.T){
-            request := httptest.NewRequest(tc.httpMethod, tc.request, nil)
+            req := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
+            HandleUpdate(w, req)
+
+            result := w.Result()
+
+            fmt.Printf("%s\n", result.Status)
+
+            assert.Equal(t, tc.want.statusCode, result.StatusCode)
+
+            err := result.Body.Close()
+            require.NoError(t, err)
+        })
+    }
+}
+
+func TestHandleValue (t *testing.T) {
+    type want struct {
+        contentType string
+        statusCode int
+    }
+
+    type request struct {
+        metricType string
+        metricName string
+        metricValue string
+    }
+
+    tests := []struct{
+        name string
+        request request
+        httpMethod string
+        want want
+    }{
+        {
+            name: "Test Valid Gauge metric",
+            request: request {
+                metricType: "gauge",
+                metricName: "g1",
+                metricValue: "1.2",
+            },
+            httpMethod: http.MethodGet,
+            want: want{
+                contentType: "text/plain; charset=utf-8",
+                statusCode: http.StatusOK,
+            },
+        },
+        {
+            name: "Test Valid Counter metric",
+            request: request {
+                metricType: "counter",
+                metricName: "c1",
+                metricValue: "2",
+            },
+            httpMethod: http.MethodGet,
+            want: want{
+                contentType: "text/plain; charset=utf-8",
+                statusCode: http.StatusOK,
+            },
+        },
+    }
+
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T){
+            w := httptest.NewRecorder()
+
+            reqString := strings.Join([]string{"/update",
+                tc.request.metricType,
+                tc.request.metricName,
+                tc.request.metricValue}, "/")
+            request := httptest.NewRequest(tc.httpMethod, reqString, nil)
             HandleUpdate(w, request)
+
+            reqString = strings.Join([]string{"/value",
+                tc.request.metricType,
+                tc.request.metricName}, "/")
+            request = httptest.NewRequest(tc.httpMethod, reqString, nil)
+            HandleValue(w, request)
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
@@ -120,3 +197,4 @@ func TestHandleUpdate (t *testing.T) {
         })
     }
 }
+
