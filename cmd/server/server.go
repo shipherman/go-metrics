@@ -1,19 +1,19 @@
 package main
 
 import (
-//      "fmt"
+    "io"
+    "fmt"
     "net/http"
-//     "io"
-//     "encoding/json"
-    "strings"
+    "log"
     "strconv"
+
+    "github.com/go-chi/chi/v5"
     s "github.com/shipherman/go-metrics/internal/storage"
 )
 
 
 var mem = s.MemStorage{
-    CounterData: map[string]s.Counter{},
-    GaugeData: map[string]s.Gauge{},
+    Data: map[string]interface{}{},
 }
 
 
@@ -25,45 +25,47 @@ func HandleUpdate (w http.ResponseWriter, r *http.Request) {
     //http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>,
     //Content-Type: text/plain
 
-    if r.Method != http.MethodPost {
-        http.Error(w, "Incorrect HTTP method", http.StatusMethodNotAllowed)
-    }
+    metricType := chi.URLParam(r, "type")
+    metric := chi.URLParam(r, "metric")
+    value := chi.URLParam(r, "value")
 
-    url := strings.Split(r.URL.Path,"/")
-    if len(url) < 5 {
-        http.Error(w, "Missed data in POST Request", http.StatusNotFound)
-        return
-    }
-    switch url[2] {
+    // find out metric type
+    switch metricType {
         case "counter":
-            i, err := strconv.Atoi(url[4])
+            v, err := strconv.Atoi(value)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
-            } else {
-                mem.CounterData[url[3]] += s.Counter(i)
-                w.WriteHeader(http.StatusOK)
             }
+            mem.Update(metricType, metric, s.Counter(v))
         case "gauge":
-            i, err := strconv.ParseFloat(url[4], 64)
+            v, err := strconv.ParseFloat(value, 64)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
-            } else {
-                mem.GaugeData[url[3]] = s.Gauge(i)
-                w.WriteHeader(http.StatusOK)
             }
+            mem.Update(metricType, metric, s.Gauge(v))
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }
 //      fmt.Println(&mem)
 }
 
-func main() {
-    //run server
-    server := http.NewServeMux()
-    server.HandleFunc(`/`, HandleMain)
-    server.HandleFunc(`/update/`, HandleUpdate)
-    err := http.ListenAndServe(":8080", server)
+func HandleValue (w http.ResponseWriter, r *http.Request) {
+    metric := chi.URLParam(r, "metric")
+    v, err := mem.Get(metric)
     if err != nil {
-        panic(err)
+        http.Error(w, err.Error(), http.StatusNotFound)
     }
+    io.WriteString(w, fmt.Sprintf("%v", v))
+}
+
+func main() {
+    // Routers
+    router := chi.NewRouter()
+    router.Get("/", HandleMain)
+    router.Post("/update/{type}/{metric}/{value}", HandleUpdate)
+    router.Get("/value/gauge/{metric}", HandleValue)
+    router.Get("/value/counter/{metric}", HandleValue)
+
+    //run server
+    log.Fatal(http.ListenAndServe(":8080", router))
 }
