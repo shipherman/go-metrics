@@ -254,9 +254,9 @@ func TestHandleValue (t *testing.T) {
 
 //             rctx.Reset()
 
-            reqString = strings.Join([]string{"/value",
-                tc.request.metricType,
-                tc.request.metricName}, "/")
+//             reqString = strings.Join([]string{"/value",
+//                 tc.request.metricType,
+//                 tc.request.metricName}, "/")
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
             rctx = chi.NewRouteContext()
             rctx.URLParams.Add("type", tc.request.metricType,)
