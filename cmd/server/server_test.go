@@ -2,11 +2,15 @@ package main
 
 import (
 //     "io"
-"fmt"
+    "fmt"
+    "context"
     "strings"
     "testing"
     "net/http"
     "net/http/httptest"
+
+    "github.com/go-chi/chi/v5"
+
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/require"
 
@@ -31,7 +35,7 @@ func TestHandleMain (t *testing.T){
             httpMethod: http.MethodPost,
             want: want{
                 contentType: "text/plain; charset=utf-8",
-                statusCode: http.StatusBadRequest,
+                statusCode: http.StatusOK,
             },
         },
     }
@@ -56,15 +60,26 @@ func TestHandleUpdate (t *testing.T) {
         contentType string
         statusCode int
     }
+
+    type request struct {
+        metricType string
+        metricName string
+        metricValue string
+    }
+
     tests := []struct{
         name string
-        request string
+        request request
         httpMethod string
         want want
     }{
         {
             name: "Test Valid Gauge metric",
-            request: "/update/gauge/m01/1.35",
+            request: request {
+                metricType: "gauge",
+                metricName: "m01",
+                metricValue: "1.3",
+            },
             httpMethod: http.MethodPost,
             want: want{
                 contentType: "text/plain; charset=utf-8",
@@ -73,7 +88,11 @@ func TestHandleUpdate (t *testing.T) {
         },
         {
             name: "Test Invalid Gauge metric",
-            request: "/update/gauge/m02/1e",
+            request: request {
+                metricType: "gauge",
+                metricName: "m01",
+                metricValue: "1ad3",
+            },
             httpMethod: http.MethodPost,
             want: want{
                 contentType: "text/plain; charset=utf-8",
@@ -82,7 +101,11 @@ func TestHandleUpdate (t *testing.T) {
         },
         {
             name: "Test Valid Counter metric",
-            request: "/update/counter/n01/5",
+            request: request {
+                metricType: "counter",
+                metricName: "m02",
+                metricValue: "1",
+            },
             httpMethod: http.MethodPost,
             want: want{
                 contentType: "text/plain; charset=utf-8",
@@ -91,7 +114,11 @@ func TestHandleUpdate (t *testing.T) {
         },
         {
             name: "Test Invalid Counter metric",
-            request: "/update/counter/n01/5.2",
+            request: request {
+                metricType: "counter",
+                metricName: "m02",
+                metricValue: "1.4",
+            },
             httpMethod: http.MethodPost,
             want: want{
                 contentType: "text/plain; charset=utf-8",
@@ -99,19 +126,37 @@ func TestHandleUpdate (t *testing.T) {
             },
         },
         {
-            name: "Test Invalid update request without metric name",
-            request: "/update/gauge/12.3",
+            name: "Test Invalid  metric type",
+            request: request {
+                metricType: "nosuchmetric",
+                metricName: "m02",
+                metricValue: "1.4",
+            },
             httpMethod: http.MethodPost,
             want: want{
                 contentType: "text/plain; charset=utf-8",
-                statusCode: http.StatusNotFound,
+                statusCode: http.StatusBadRequest,
             },
         },
     }
     for _, tc := range tests {
         t.Run(tc.name, func(t *testing.T){
-            req := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
+
+            reqString := strings.Join([]string{"/update",
+                tc.request.metricType,
+                tc.request.metricName,
+                tc.request.metricValue}, "/")
+            req := httptest.NewRequest(tc.httpMethod, reqString, nil)
+
+            rctx := chi.NewRouteContext()
+            rctx.URLParams.Add("type", tc.request.metricType,)
+            rctx.URLParams.Add("metric", tc.request.metricName,)
+            rctx.URLParams.Add("value", tc.request.metricValue,)
+
+
+            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
             HandleUpdate(w, req)
 
             result := w.Result()
@@ -130,6 +175,7 @@ func TestHandleValue (t *testing.T) {
     type want struct {
         contentType string
         statusCode int
+        metricName string
     }
 
     type request struct {
@@ -148,26 +194,42 @@ func TestHandleValue (t *testing.T) {
             name: "Test Valid Gauge metric",
             request: request {
                 metricType: "gauge",
-                metricName: "g1",
+                metricName: "t1",
                 metricValue: "1.2",
             },
             httpMethod: http.MethodGet,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusOK,
+                metricName: "t1",
             },
         },
         {
-            name: "Test Valid Counter metric",
+            name: "Test Vaid Counter metric",
             request: request {
                 metricType: "counter",
-                metricName: "c1",
+                metricName: "t2",
                 metricValue: "2",
             },
             httpMethod: http.MethodGet,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusOK,
+                metricName: "t2",
+            },
+        },
+        {
+            name: "Test Invalid metric",
+            request: request {
+                metricType: "counter",
+                metricName: "t3",
+                metricValue: "3",
+            },
+            httpMethod: http.MethodGet,
+            want: want{
+                contentType: "text/plain; charset=utf-8",
+                statusCode: http.StatusNotFound,
+                metricName: "null",
             },
         },
     }
@@ -180,14 +242,28 @@ func TestHandleValue (t *testing.T) {
                 tc.request.metricType,
                 tc.request.metricName,
                 tc.request.metricValue}, "/")
-            request := httptest.NewRequest(tc.httpMethod, reqString, nil)
-            HandleUpdate(w, request)
+            req := httptest.NewRequest(tc.httpMethod, reqString, nil)
+            rctx := chi.NewRouteContext()
+            rctx.URLParams.Add("type", tc.request.metricType,)
+            rctx.URLParams.Add("metric", tc.request.metricName,)
+            rctx.URLParams.Add("value", tc.request.metricValue,)
+
+            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+//             fmt.Println(reqString)
+            HandleUpdate(w, req)
+
+//             rctx.Reset()
 
             reqString = strings.Join([]string{"/value",
                 tc.request.metricType,
                 tc.request.metricName}, "/")
-            request = httptest.NewRequest(tc.httpMethod, reqString, nil)
-            HandleValue(w, request)
+            req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
+            rctx = chi.NewRouteContext()
+            rctx.URLParams.Add("type", tc.request.metricType,)
+            rctx.URLParams.Add("metric", tc.want.metricName,)
+            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+            HandleValue(w, req)
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
@@ -196,5 +272,10 @@ func TestHandleValue (t *testing.T) {
             require.NoError(t, err)
         })
     }
+}
+
+func Testmain() (t *testing.T){
+    //
+    return
 }
 

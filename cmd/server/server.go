@@ -18,7 +18,8 @@ var mem = s.MemStorage{
 
 
 func HandleMain(w http.ResponseWriter, r *http.Request) {
-    http.Error(w, "BadRequest", http.StatusBadRequest)
+    io.WriteString(w, "main page")
+
 }
 
 func HandleUpdate (w http.ResponseWriter, r *http.Request) {
@@ -29,15 +30,19 @@ func HandleUpdate (w http.ResponseWriter, r *http.Request) {
     metric := chi.URLParam(r, "metric")
     value := chi.URLParam(r, "value")
 
+//     fmt.Println(metricType, metric, value)
+
     // find out metric type
     switch metricType {
         case "counter":
+//             fmt.Println("inside counter")
             v, err := strconv.Atoi(value)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
             }
             mem.Update(metricType, metric, s.Counter(v))
         case "gauge":
+//             fmt.Println("gauge")
             v, err := strconv.ParseFloat(value, 64)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
@@ -51,6 +56,7 @@ func HandleUpdate (w http.ResponseWriter, r *http.Request) {
 
 func HandleValue (w http.ResponseWriter, r *http.Request) {
     metric := chi.URLParam(r, "metric")
+    fmt.Println(metric)
     v, err := mem.Get(metric)
     if err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
