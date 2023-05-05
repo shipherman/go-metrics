@@ -15,7 +15,9 @@ type MemStorage struct {
 type Storage interface {
     Update(mtype string, metric string, value interface{}) error
     Get(metric string) error
+    GetAll() map[string]interface{}
 }
+
 
 func (m *MemStorage) Get(metric string) (interface{}, error) {
     if v, ok := m.Data[metric]; ok {
@@ -23,6 +25,10 @@ func (m *MemStorage) Get(metric string) (interface{}, error) {
     }
     return "no such metric in memstorage", fmt.Errorf("not found")
 
+}
+
+func (m *MemStorage) GetAll() map[string]interface{} {
+    return m.Data
 }
 
 func (m *MemStorage) Update(mtype string, metric string, value interface{}) error {

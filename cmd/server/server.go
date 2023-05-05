@@ -18,7 +18,28 @@ var mem = s.MemStorage{
 
 
 func HandleMain(w http.ResponseWriter, r *http.Request) {
-    io.WriteString(w, "main page")
+
+    body := `
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>All tuples</title>
+    </head>
+    <body>
+      <table>
+          <tr>
+            <td>Metric</td>
+            <td>Value</td>
+          </tr>
+    `
+    list := mem.GetAll()
+    for k, v := range list {
+        body = body + fmt.Sprintf("<tr>\n<td>%s</td>\n", k)
+        body = body + fmt.Sprintf("<td>%v</td>\n</tr>\n", v)
+    }
+    body = body + " </table>\n </body>\n</html>"
+
+    w.Write([]byte(body))
 
 }
 
