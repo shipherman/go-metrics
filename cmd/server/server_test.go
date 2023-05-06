@@ -149,13 +149,13 @@ func TestHandleUpdate (t *testing.T) {
                 tc.request.metricValue}, "/")
             req := httptest.NewRequest(tc.httpMethod, reqString, nil)
 
-            rctx := chi.NewRouteContext()
-            rctx.URLParams.Add("type", tc.request.metricType,)
-            rctx.URLParams.Add("metric", tc.request.metricName,)
-            rctx.URLParams.Add("value", tc.request.metricValue,)
+            rContext := chi.NewRouteContext()
+            rContext.URLParams.Add("type", tc.request.metricType,)
+            rContext.URLParams.Add("metric", tc.request.metricName,)
+            rContext.URLParams.Add("value", tc.request.metricValue,)
 
 
-            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
             HandleUpdate(w, req)
 
@@ -243,25 +243,20 @@ func TestHandleValue (t *testing.T) {
                 tc.request.metricName,
                 tc.request.metricValue}, "/")
             req := httptest.NewRequest(tc.httpMethod, reqString, nil)
-            rctx := chi.NewRouteContext()
-            rctx.URLParams.Add("type", tc.request.metricType,)
-            rctx.URLParams.Add("metric", tc.request.metricName,)
-            rctx.URLParams.Add("value", tc.request.metricValue,)
+            rContext := chi.NewRouteContext()
+            rContext.URLParams.Add("type", tc.request.metricType,)
+            rContext.URLParams.Add("metric", tc.request.metricName,)
+            rContext.URLParams.Add("value", tc.request.metricValue,)
 
-            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 //             fmt.Println(reqString)
             HandleUpdate(w, req)
 
-//             rctx.Reset()
-
-//             reqString = strings.Join([]string{"/value",
-//                 tc.request.metricType,
-//                 tc.request.metricName}, "/")
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
-            rctx = chi.NewRouteContext()
-            rctx.URLParams.Add("type", tc.request.metricType,)
-            rctx.URLParams.Add("metric", tc.want.metricName,)
-            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+            rContext = chi.NewRouteContext()
+            rContext.URLParams.Add("type", tc.request.metricType,)
+            rContext.URLParams.Add("metric", tc.want.metricName,)
+            req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
             HandleValue(w, req)
 
@@ -275,7 +270,7 @@ func TestHandleValue (t *testing.T) {
 }
 
 func Testmain() (t *testing.T){
-    //
+    //todo
     return
 }
 
