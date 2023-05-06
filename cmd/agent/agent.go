@@ -8,20 +8,21 @@ import (
     "runtime"
     "time"
     "math/rand"
+    "strconv"
 
     "net/http"
     "net/url"
 
     s "github.com/shipherman/go-metrics/internal/storage"
-    "github.com/caarlos0/env/v6"
+//     e "github.com/caarlos0/env/v6"
 
     "os"
 )
 
 type Options struct {
     serverAddress string `env:"ADDRESS"`
-    reportInterval time.Duration `env:"REPORT_INTERVAL"`
     pollInterval time.Duration `env:"POLL_INTERVAL"`
+    reportInterval time.Duration `env:"REPORT_INTERVAL"`
 }
 
 var options Options
@@ -39,8 +40,7 @@ var logger *log.Logger
 
 
 func parseOptions () {
-    var o Options
-	fmt.Println(options)
+// 	fmt.Println(options)
     flag.DurationVar(&options.pollInterval, "p", 2,
                      "Frequensy in seconds for collecting metrics")
     flag.DurationVar(&options.reportInterval, "r", 10,
@@ -48,13 +48,30 @@ func parseOptions () {
     flag.StringVar(&options.serverAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
     flag.Parse()
-	fmt.Println(options)
+// 	fmt.Println(options)
 
-    if err := env.Parse(&o); err != nil {
-        log.Printf("%+v\n", err)
-        panic(err)
-	}
-	fmt.Println(options, o, os.Getenv("POLL_INTERVAL"), os.Getenv("REPORT_INTERVAL") )
+//     if err := e.Parse(&options); err != nil {
+//         fmt.Println(err)
+//     }
+    if l := os.Getenv("ADDRESS"); l != "" {
+        options.serverAddress = l
+    }
+    if l := os.Getenv("POLL_INTERVAL"); l != "" {
+        i, err := strconv.ParseInt(l,10,64)
+        if err != nil {
+            panic(err)
+        }
+        options.pollInterval = time.Duration(i)
+    }
+    if l := os.Getenv("REPORT_INTERVAL"); l != "" {
+        i, err := strconv.ParseInt(l,10,64)
+        if err != nil {
+            panic(err)
+        }
+        options.reportInterval = time.Duration(i)
+    }
+
+// 	fmt.Println(options, os.Getenv("POLL_INTERVAL"), os.Getenv("REPORT_INTERVAL") )
 }
 
 func SendPostRequest (req string) error {
