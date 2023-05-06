@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "io"
+    "flag"
     "runtime"
     "math/rand"
 //     "encoding/json"
@@ -15,19 +16,26 @@ import (
 
 
 //sleep param
-var pollInterval time.Duration = 2
-var reportInterval time.Duration = 10
+// var pollInterval time.Duration = 2
+// var reportInterval time.Duration = 10
 
 //init MemStorage
 var m = s.MemStorage{Data: make(map[string]interface{})}
 
 //server parameters
-var serverAddr = "http://localhost:8080/update/"
+// var serverAddr = "http://localhost:8080/update/"
 var contentType = url.Values{"Content-type": {"text/plain"}}
 
-func SendPostRequest (req string) error {
-    //build request string
+//cli options
+var options struct {
+    serverAddress string
+    reportInterval time.Duration
+    pollInterval time.Duration
+//     contentType url.Values
+}
 
+
+func SendPostRequest (req string) error {
     resp, err := http.PostForm(req, contentType)
     if err != nil {
         return err
@@ -59,7 +67,7 @@ func ProcessReport (data s.MemStorage) error {
             case s.Counter:
                 mtype = "counter"
         }
-        req := serverAddr + mtype + fmt.Sprintf("/%v/%v",k,v)
+        req := "http://" + options.serverAddress + "/update/" + mtype + fmt.Sprintf("/%v/%v",k,v)
         err := SendPostRequest(req)
         if err != nil {
             return err
@@ -69,6 +77,15 @@ func ProcessReport (data s.MemStorage) error {
 }
 
 func main() {
+    //parse cli options
+    flag.DurationVar(&options.pollInterval, "p", 2,
+                     "Frequensy in seconds for collecting metrics")
+    flag.DurationVar(&options.reportInterval, "r", 2,
+                     "Frequensy in seconds for sending report to the server")
+    flag.StringVar(&options.serverAddress, "a", "localhost:8080",
+                "Address of the server to send metrics")
+    flag.Parse()
+
     var stat runtime.MemStats
     runtime.ReadMemStats(&stat)
 
@@ -77,7 +94,7 @@ func main() {
 
     go func() {
         for {
-            time.Sleep(time.Second * pollInterval)
+            time.Sleep(time.Second * options.pollInterval)
 
             //collect data from MemStats
             m.Data["Alloc"] = s.Gauge(stat.Alloc)
@@ -114,7 +131,7 @@ func main() {
 
     //send collected data to the server
     for {
-        time.Sleep(time.Second * reportInterval)
+        time.Sleep(time.Second * options.reportInterval)
         err := ProcessReport(m)
         if err != nil {
             panic(err)

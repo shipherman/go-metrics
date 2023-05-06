@@ -3,6 +3,7 @@ package main
 import (
     "io"
     "fmt"
+    "flag"
     "net/http"
     "log"
     "strconv"
@@ -14,6 +15,11 @@ import (
 
 var mem = s.MemStorage{
     Data: map[string]interface{}{},
+}
+
+//cli options
+var options struct {
+    address string
 }
 
 
@@ -86,6 +92,12 @@ func HandleValue (w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    //parse cli options
+    flag.StringVar(&options.address,
+                   "a", "localhost:8080",
+                   "Add addres and port in format <address>:<port>")
+    flag.Parse()
+
     // Routers
     router := chi.NewRouter()
     router.Get("/", HandleMain)
@@ -94,5 +106,5 @@ func main() {
     router.Get("/value/counter/{metric}", HandleValue)
 
     //run server
-    log.Fatal(http.ListenAndServe(":8080", router))
+    log.Fatal(http.ListenAndServe(options.address, router))
 }
