@@ -6,15 +6,25 @@ import (
     "log"
     "flag"
     "runtime"
+    "time"
     "math/rand"
-//     "encoding/json"
+
     "net/http"
     "net/url"
-    "time"
 
     s "github.com/shipherman/go-metrics/internal/storage"
+    "github.com/caarlos0/env/v6"
+
+    "os"
 )
 
+type Options struct {
+    serverAddress string `env:"ADDRESS"`
+    reportInterval time.Duration `env:"REPORT_INTERVAL"`
+    pollInterval time.Duration `env:"POLL_INTERVAL"`
+}
+
+var options Options
 
 //init MemStorage
 var m = s.MemStorage{Data: make(map[string]interface{})}
@@ -23,13 +33,29 @@ var m = s.MemStorage{Data: make(map[string]interface{})}
 var contentType = url.Values{"Content-type": {"text/plain"}}
 
 //cli options
-var options struct {
-    serverAddress string
-    reportInterval time.Duration
-    pollInterval time.Duration
-}
+
 
 var logger *log.Logger
+
+
+func parseOptions () {
+    var o Options
+	fmt.Println(options)
+    flag.DurationVar(&options.pollInterval, "p", 2,
+                     "Frequensy in seconds for collecting metrics")
+    flag.DurationVar(&options.reportInterval, "r", 10,
+                     "Frequensy in seconds for sending report to the server")
+    flag.StringVar(&options.serverAddress, "a", "localhost:8080",
+                "Address of the server to send metrics")
+    flag.Parse()
+	fmt.Println(options)
+
+    if err := env.Parse(&o); err != nil {
+        log.Printf("%+v\n", err)
+        panic(err)
+	}
+	fmt.Println(options, o, os.Getenv("POLL_INTERVAL"), os.Getenv("REPORT_INTERVAL") )
+}
 
 func SendPostRequest (req string) error {
     resp, err := http.PostForm(req, contentType)
@@ -76,13 +102,7 @@ func main() {
     //init logger
 
     //parse cli options
-    flag.DurationVar(&options.pollInterval, "p", 2,
-                     "Frequensy in seconds for collecting metrics")
-    flag.DurationVar(&options.reportInterval, "r", 10,
-                     "Frequensy in seconds for sending report to the server")
-    flag.StringVar(&options.serverAddress, "a", "localhost:8080",
-                "Address of the server to send metrics")
-    flag.Parse()
+    parseOptions()
 
     var stat runtime.MemStats
     runtime.ReadMemStats(&stat)
@@ -90,11 +110,11 @@ func main() {
     // initiate conters
     m.Data["PollCount"] = s.Counter(0)
 
-    fmt.Println(options)
+//     fmt.Println(options)
 
     go func() {
         for {
-            fmt.Println("collect: ", time.Now())
+//             fmt.Println("collect: ", time.Now())
             //collect data from MemStats
             m.Data["Alloc"] = s.Gauge(stat.Alloc)
             m.Data["BuckHashSys"] = s.Gauge(stat.BuckHashSys)
@@ -134,7 +154,7 @@ func main() {
 
     //send collected data to the server
     for {
-        fmt.Println("send report: ", time.Now())
+//         fmt.Println("send report: ", time.Now())
         err := ProcessReport(m)
         if err != nil {
             log.Println(err)
