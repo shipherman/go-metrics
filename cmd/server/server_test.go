@@ -34,7 +34,7 @@ func TestHandleMain (t *testing.T){
             request: "/",
             httpMethod: http.MethodPost,
             want: want{
-                contentType: "text/plain; charset=utf-8",
+                contentType: "text/html; charset=utf-8",
                 statusCode: http.StatusOK,
             },
         },
