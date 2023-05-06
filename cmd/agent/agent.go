@@ -78,9 +78,9 @@ func ProcessReport (data s.MemStorage) error {
 
 func main() {
     //parse cli options
-    flag.DurationVar(&options.pollInterval, "p", 2,
+    flag.DurationVar(&options.pollInterval, "p", time.Second * 2,
                      "Frequensy in seconds for collecting metrics")
-    flag.DurationVar(&options.reportInterval, "r", 10,
+    flag.DurationVar(&options.reportInterval, "r", time.Second * 10,
                      "Frequensy in seconds for sending report to the server")
     flag.StringVar(&options.serverAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
@@ -94,7 +94,7 @@ func main() {
 
     go func() {
         for {
-            time.Sleep(time.Second * options.pollInterval)
+            time.Sleep(options.pollInterval)
 
             //collect data from MemStats
             m.Data["Alloc"] = s.Gauge(stat.Alloc)
@@ -131,7 +131,7 @@ func main() {
 
     //send collected data to the server
     for {
-        time.Sleep(time.Second * options.reportInterval)
+        time.Sleep(options.reportInterval)
         err := ProcessReport(m)
         if err != nil {
             panic(err)
