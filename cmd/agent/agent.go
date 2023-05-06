@@ -80,7 +80,7 @@ func main() {
     //parse cli options
     flag.DurationVar(&options.pollInterval, "p", 2,
                      "Frequensy in seconds for collecting metrics")
-    flag.DurationVar(&options.reportInterval, "r", 2,
+    flag.DurationVar(&options.reportInterval, "r", 10,
                      "Frequensy in seconds for sending report to the server")
     flag.StringVar(&options.serverAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
