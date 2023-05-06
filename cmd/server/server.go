@@ -2,6 +2,7 @@ package main
 
 import (
     "io"
+    "os"
     "fmt"
     "flag"
     "net/http"
@@ -21,6 +22,8 @@ var mem = s.MemStorage{
 var options struct {
     address string
 }
+
+var logger *log.Logger
 
 
 func HandleMain(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +86,7 @@ func HandleUpdate (w http.ResponseWriter, r *http.Request) {
 
 func HandleValue (w http.ResponseWriter, r *http.Request) {
     metric := chi.URLParam(r, "metric")
-    fmt.Println(metric)
+//     fmt.Println(metric)
     v, err := mem.Get(metric)
     if err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
@@ -92,6 +95,17 @@ func HandleValue (w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    //init logger
+    logFile, err := os.OpenFile("./logs.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+    if err != nil {
+        log.Fatalf("error opening file: %v", err)
+    }
+    defer logFile.Close()
+
+    logger = log.New(os.Stdout, "", 1)
+
+//     logger.SetOutput(logFile)
+
     //parse cli options
     flag.StringVar(&options.address,
                    "a", "localhost:8080",
@@ -106,5 +120,5 @@ func main() {
     router.Get("/value/counter/{metric}", HandleValue)
 
     //run server
-    log.Fatal(http.ListenAndServe(options.address, router))
+    logger.Fatal(http.ListenAndServe(options.address, router))
 }

@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "io"
+    "log"
     "flag"
     "runtime"
     "math/rand"
@@ -15,15 +16,10 @@ import (
 )
 
 
-//sleep param
-// var pollInterval time.Duration = 2
-// var reportInterval time.Duration = 10
-
 //init MemStorage
 var m = s.MemStorage{Data: make(map[string]interface{})}
 
 //server parameters
-// var serverAddr = "http://localhost:8080/update/"
 var contentType = url.Values{"Content-type": {"text/plain"}}
 
 //cli options
@@ -31,9 +27,9 @@ var options struct {
     serverAddress string
     reportInterval time.Duration
     pollInterval time.Duration
-//     contentType url.Values
 }
 
+var logger *log.Logger
 
 func SendPostRequest (req string) error {
     resp, err := http.PostForm(req, contentType)
@@ -77,10 +73,12 @@ func ProcessReport (data s.MemStorage) error {
 }
 
 func main() {
+    //init logger
+
     //parse cli options
-    flag.DurationVar(&options.pollInterval, "p", time.Second * 2,
+    flag.DurationVar(&options.pollInterval, "p", 2,
                      "Frequensy in seconds for collecting metrics")
-    flag.DurationVar(&options.reportInterval, "r", time.Second * 10,
+    flag.DurationVar(&options.reportInterval, "r", 10,
                      "Frequensy in seconds for sending report to the server")
     flag.StringVar(&options.serverAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
@@ -92,10 +90,11 @@ func main() {
     // initiate conters
     m.Data["PollCount"] = s.Counter(0)
 
+    fmt.Println(options)
+
     go func() {
         for {
-            time.Sleep(options.pollInterval)
-
+            fmt.Println("collect: ", time.Now())
             //collect data from MemStats
             m.Data["Alloc"] = s.Gauge(stat.Alloc)
             m.Data["BuckHashSys"] = s.Gauge(stat.BuckHashSys)
@@ -126,15 +125,22 @@ func main() {
             m.Data["TotalAlloc"] = s.Gauge(stat.TotalAlloc)
             m.Data["RandomValue"] = s.Gauge(rand.Float32())
             m.Data["PollCount"] = m.Data["PollCount"].(s.Counter) + 1
+
+            //collect timeout
+            time.Sleep(options.pollInterval * time.Second)
+
             }
         }()
 
     //send collected data to the server
     for {
-        time.Sleep(options.reportInterval)
+        fmt.Println("send report: ", time.Now())
         err := ProcessReport(m)
         if err != nil {
-            panic(err)
+            log.Println(err)
         }
+        //report timeout
+        time.Sleep(options.reportInterval * time.Second)
+
     }
 }
