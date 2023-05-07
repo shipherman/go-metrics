@@ -25,8 +25,8 @@ var contentType = url.Values{"Content-type": {"text/plain"}}
 //cli options
 var options struct {
     serverAddress string
-    reportInterval time.Duration
-    pollInterval time.Duration
+    reportInterval int
+    pollInterval int
 }
 
 var logger *log.Logger
@@ -76,9 +76,9 @@ func main() {
     //init logger
 
     //parse cli options
-    flag.DurationVar(&options.pollInterval, "p", 2,
+    flag.IntVar(&options.pollInterval, "p", 2,
                      "Frequensy in seconds for collecting metrics")
-    flag.DurationVar(&options.reportInterval, "r", 10,
+    flag.IntVar(&options.reportInterval, "r", 10,
                      "Frequensy in seconds for sending report to the server")
     flag.StringVar(&options.serverAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
@@ -90,7 +90,7 @@ func main() {
     // initiate conters
     m.Data["PollCount"] = s.Counter(0)
 
-    fmt.Println(options)
+//     fmt.Println(options)
 
     go func() {
         for {
@@ -127,7 +127,7 @@ func main() {
             m.Data["PollCount"] = m.Data["PollCount"].(s.Counter) + 1
 
             //collect timeout
-            time.Sleep(options.pollInterval * time.Second)
+            time.Sleep(time.Duration(options.pollInterval) * time.Second)
 
             }
         }()
@@ -140,7 +140,7 @@ func main() {
             log.Println(err)
         }
         //report timeout
-        time.Sleep(options.reportInterval * time.Second)
+        time.Sleep(time.Duration(options.reportInterval) * time.Second)
 
     }
 }

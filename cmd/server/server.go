@@ -102,9 +102,7 @@ func main() {
     }
     defer logFile.Close()
 
-    logger = log.New(os.Stdout, "", 1)
-
-//     logger.SetOutput(logFile)
+    logger = log.New(logFile, "INFO ", log.Ldate|log.Ltime|log.Lshortfile)
 
     //parse cli options
     flag.StringVar(&options.address,
@@ -119,6 +117,7 @@ func main() {
     router.Get("/value/gauge/{metric}", HandleValue)
     router.Get("/value/counter/{metric}", HandleValue)
 
+    logger.Println("Starting server...")
     //run server
     logger.Fatal(http.ListenAndServe(options.address, router))
 }
