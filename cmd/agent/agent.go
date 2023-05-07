@@ -19,6 +19,7 @@ import (
     "os"
 )
 
+//cli options
 type Options struct {
     serverAddress string `env:"ADDRESS"`
     pollInterval time.Duration `env:"POLL_INTERVAL"`
@@ -33,7 +34,7 @@ var m = s.MemStorage{Data: make(map[string]interface{})}
 //server parameters
 var contentType = url.Values{"Content-type": {"text/plain"}}
 
-//cli options
+
 
 
 var logger *log.Logger
@@ -119,6 +120,7 @@ func main() {
     //init logger
 
     //parse cli options
+
     parseOptions()
 
     var stat runtime.MemStats
@@ -164,7 +166,7 @@ func main() {
             m.Data["PollCount"] = m.Data["PollCount"].(s.Counter) + 1
 
             //collect timeout
-            time.Sleep(options.pollInterval * time.Second)
+            time.Sleep(time.Duration(options.pollInterval) * time.Second)
 
             }
         }()
@@ -177,7 +179,7 @@ func main() {
             log.Println(err)
         }
         //report timeout
-        time.Sleep(options.reportInterval * time.Second)
+        time.Sleep(time.Duration(options.reportInterval) * time.Second)
 
     }
 }
