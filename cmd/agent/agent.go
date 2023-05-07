@@ -22,14 +22,17 @@ import (
 //cli options
 type Options struct {
     serverAddress string `env:"ADDRESS"`
-    pollInterval time.Duration `env:"POLL_INTERVAL"`
-    reportInterval time.Duration `env:"REPORT_INTERVAL"`
+    pollInterval int `env:"POLL_INTERVAL"`
+    reportInterval int `env:"REPORT_INTERVAL"`
 }
 
 var options Options
 
 //init MemStorage
 var m = s.MemStorage{Data: make(map[string]interface{})}
+
+//MemStats instance
+var stat runtime.MemStats
 
 //server parameters
 var contentType = url.Values{"Content-type": {"text/plain"}}
@@ -42,34 +45,36 @@ var logger *log.Logger
 
 func parseOptions () {
 // 	fmt.Println(options)
-    flag.DurationVar(&options.pollInterval, "p", 2,
+    flag.IntVar(&options.pollInterval, "p", 2,
                      "Frequensy in seconds for collecting metrics")
-    flag.DurationVar(&options.reportInterval, "r", 10,
+    flag.IntVar(&options.reportInterval, "r", 10,
                      "Frequensy in seconds for sending report to the server")
     flag.StringVar(&options.serverAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
     flag.Parse()
 // 	fmt.Println(options)
 
+    // env/v6 не работает )Ж
 //     if err := e.Parse(&options); err != nil {
 //         fmt.Println(err)
 //     }
+
     if l := os.Getenv("ADDRESS"); l != "" {
         options.serverAddress = l
     }
     if l := os.Getenv("POLL_INTERVAL"); l != "" {
-        i, err := strconv.ParseInt(l,10,64)
+        i, err := strconv.Atoi(l)
         if err != nil {
             panic(err)
         }
-        options.pollInterval = time.Duration(i)
+        options.pollInterval = i
     }
     if l := os.Getenv("REPORT_INTERVAL"); l != "" {
-        i, err := strconv.ParseInt(l,10,64)
+        i, err := strconv.Atoi(l)
         if err != nil {
             panic(err)
         }
-        options.reportInterval = time.Duration(i)
+        options.reportInterval = i
     }
 
 // 	fmt.Println(options, os.Getenv("POLL_INTERVAL"), os.Getenv("REPORT_INTERVAL") )
@@ -120,20 +125,15 @@ func main() {
     //init logger
 
     //parse cli options
-
     parseOptions()
 
-    var stat runtime.MemStats
     runtime.ReadMemStats(&stat)
 
     // initiate conters
     m.Data["PollCount"] = s.Counter(0)
 
-//     fmt.Println(options)
-
     go func() {
         for {
-//             fmt.Println("collect: ", time.Now())
             //collect data from MemStats
             m.Data["Alloc"] = s.Gauge(stat.Alloc)
             m.Data["BuckHashSys"] = s.Gauge(stat.BuckHashSys)
@@ -173,7 +173,6 @@ func main() {
 
     //send collected data to the server
     for {
-//         fmt.Println("send report: ", time.Now())
         err := ProcessReport(m)
         if err != nil {
             log.Println(err)
