@@ -110,6 +110,10 @@ func main() {
                    "Add addres and port in format <address>:<port>")
     flag.Parse()
 
+    if a := os.Getenv("ADDRESS"); a != "" {
+        options.address = a
+    }
+//     println(options.address)
     // Routers
     router := chi.NewRouter()
     router.Get("/", HandleMain)
