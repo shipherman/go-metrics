@@ -13,7 +13,7 @@ import (
     s "github.com/shipherman/go-metrics/internal/storage"
 )
 
-
+//storage
 var mem = s.MemStorage{
     Data: map[string]interface{}{},
 }
@@ -23,11 +23,9 @@ var options struct {
     address string
 }
 
-var logger *log.Logger
-
 
 func HandleMain(w http.ResponseWriter, r *http.Request) {
-
+    //write static html page with all the items to the response; unsorted
     body := `
 <!DOCTYPE html>
 <html>
@@ -49,30 +47,26 @@ func HandleMain(w http.ResponseWriter, r *http.Request) {
     body = body + " </table>\n </body>\n</html>"
 
     w.Write([]byte(body))
-
 }
 
 func HandleUpdate (w http.ResponseWriter, r *http.Request) {
     //http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>,
     //Content-Type: text/plain
 
+    // get context params
     metricType := chi.URLParam(r, "type")
     metric := chi.URLParam(r, "metric")
     value := chi.URLParam(r, "value")
 
-//     fmt.Println(metricType, metric, value)
-
     // find out metric type
     switch metricType {
         case "counter":
-//             fmt.Println("inside counter")
             v, err := strconv.Atoi(value)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
             }
             mem.Update(metricType, metric, s.Counter(v))
         case "gauge":
-//             fmt.Println("gauge")
             v, err := strconv.ParseFloat(value, 64)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
@@ -81,12 +75,10 @@ func HandleUpdate (w http.ResponseWriter, r *http.Request) {
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }
-//      fmt.Println(&mem)
 }
 
 func HandleValue (w http.ResponseWriter, r *http.Request) {
     metric := chi.URLParam(r, "metric")
-//     fmt.Println(metric)
     v, err := mem.Get(metric)
     if err != nil {
         http.Error(w, err.Error(), http.StatusNotFound)
@@ -95,25 +87,17 @@ func HandleValue (w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    //init logger
-    logFile, err := os.OpenFile("./logs.log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
-    if err != nil {
-        log.Fatalf("error opening file: %v", err)
-    }
-    defer logFile.Close()
-
-    logger = log.New(logFile, "INFO ", log.Ldate|log.Ltime|log.Lshortfile)
-
     //parse cli options
     flag.StringVar(&options.address,
                    "a", "localhost:8080",
                    "Add addres and port in format <address>:<port>")
     flag.Parse()
 
+    // get env vars
     if a := os.Getenv("ADDRESS"); a != "" {
         options.address = a
     }
-//     println(options.address)
+
     // Routers
     router := chi.NewRouter()
     router.Get("/", HandleMain)
@@ -121,7 +105,7 @@ func main() {
     router.Get("/value/gauge/{metric}", HandleValue)
     router.Get("/value/counter/{metric}", HandleValue)
 
-    logger.Println("Starting server...")
+    log.Println("Starting server...")
     //run server
-    logger.Fatal(http.ListenAndServe(options.address, router))
+    log.Fatal(http.ListenAndServe(options.address, router))
 }

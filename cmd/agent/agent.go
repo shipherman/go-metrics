@@ -122,12 +122,8 @@ func ProcessReport (data s.MemStorage) error {
 }
 
 func main() {
-    //init logger
-
     //parse cli options
     parseOptions()
-
-    runtime.ReadMemStats(&stat)
 
     // initiate conters
     m.Data["PollCount"] = s.Counter(0)
@@ -135,6 +131,7 @@ func main() {
     go func() {
         for {
             //collect data from MemStats
+            runtime.ReadMemStats(&stat)
             m.Data["Alloc"] = s.Gauge(stat.Alloc)
             m.Data["BuckHashSys"] = s.Gauge(stat.BuckHashSys)
             m.Data["Frees"] = s.Gauge(stat.Frees)

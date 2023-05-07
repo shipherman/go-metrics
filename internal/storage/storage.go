@@ -2,7 +2,6 @@ package storage
 
 import (
     "fmt"
-//     "strconv"
 )
 
 type Counter int64
