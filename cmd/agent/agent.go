@@ -2,17 +2,9 @@ package main
 
 import (
     "log"
-    "runtime"
     "time"
-
-    s "github.com/shipherman/go-metrics/internal/storage"
 )
 
-//init MemStorage
-var m = s.MemStorage{Data: make(map[string]interface{})}
-
-//MemStats instance
-var stat runtime.MemStats
 
 //server parameters
 var contentType string = "text/plain"
@@ -39,7 +31,7 @@ func main() {
         case <-pollTicker.C:
             readMemStats(&m)
         case <-reportTicker.C:
-            err := processReport(&m)
+            err := ProcessReport(&m)
             if err != nil {
                 log.Println(err)
             }

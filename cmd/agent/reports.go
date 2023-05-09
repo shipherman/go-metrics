@@ -3,58 +3,20 @@ package main
 import (
     "fmt"
     "io"
+    "runtime"
     "strings"
     "net/http"
-    "runtime"
     "math/rand"
 
     s "github.com/shipherman/go-metrics/internal/storage"
 )
 
-func sendReport (req string) error {
-    reader := new(io.Reader)
-    resp, err := http.Post(req, contentType, *reader)
-    if err != nil {
-        return err
-    }
-    if resp.StatusCode != http.StatusOK {
-        line, err := io.ReadAll(resp.Body)
-        if err != nil {
-            return err
-        }
-        return fmt.Errorf("%s: %s; %s",
-                          "Can't send report to the server",
-                          resp.Status,
-                          line)
-    }
-    resp.Body.Close()
-    return nil
-}
+//init MemStorage
+var m = s.MemStorage{Data: make(map[string]interface{})}
 
-func processReport (data *s.MemStorage) error {
-    // metric type variable
-    var mtype string
+//MemStats instance
+var stat runtime.MemStats
 
-    //send request to the server
-    for k, v := range data.Data {
-        switch v.(type){
-            case s.Gauge:
-                mtype = "gauge"
-            case s.Counter:
-                mtype = "counter"
-        }
-        req := strings.Join([]string{"http:/",
-                         options.serverAddress,
-                         "update",
-                         mtype,
-                         fmt.Sprintf("%v/%v",k,v)}, "/")
-        err := sendReport(req)
-        if err != nil {
-            return err
-        }
-    }
-    return nil
-}
 
 func readMemStats(m *s.MemStorage) {
     runtime.ReadMemStats(&stat)
@@ -88,3 +50,49 @@ func readMemStats(m *s.MemStorage) {
     m.Update("gauge", "RandomValue", s.Gauge(rand.Float32()))
     m.Update("counter", "PollCount", s.Counter(1))
 }
+
+func sendReport (req string) error {
+    reader := new(io.Reader)
+    resp, err := http.Post(req, contentType, *reader)
+    if err != nil {
+        return err
+    }
+    if resp.StatusCode != http.StatusOK {
+        line, err := io.ReadAll(resp.Body)
+        if err != nil {
+            return err
+        }
+        return fmt.Errorf("%s: %s; %s",
+                          "Can't send report to the server",
+                          resp.Status,
+                          line)
+    }
+    resp.Body.Close()
+    return nil
+}
+
+func ProcessReport (data *s.MemStorage) error {
+    // metric type variable
+    var mtype string
+
+    //send request to the server
+    for k, v := range data.Data {
+        switch v.(type){
+            case s.Gauge:
+                mtype = "gauge"
+            case s.Counter:
+                mtype = "counter"
+        }
+        req := strings.Join([]string{"http:/",
+                         options.serverAddress,
+                         "update",
+                         mtype,
+                         fmt.Sprintf("%v/%v",k,v)}, "/")
+        err := sendReport(req)
+        if err != nil {
+            return err
+        }
+    }
+    return nil
+}
+

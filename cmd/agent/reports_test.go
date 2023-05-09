@@ -3,46 +3,41 @@ package main
 import (
     "fmt"
     "testing"
-
+    "strings"
     "net/http/httptest"
     "net/http"
 //     "errors"
 
     "github.com/stretchr/testify/assert"
+    s "github.com/shipherman/go-metrics/internal/storage"
 )
 
-func TestsendReport (t *testing.T) {
-    type request struct {
-        datatype string
-        key any
-        value any
-    }
-
+func TestProcessReport (t *testing.T) {
     // http server response body
     response := "response"
 
     tests := []struct {
         name string
-        req request
+        store s.MemStorage
         wanterr error
         wantcode int
     }{
         {
             name: "Test Valid Post request gauge metric",
-            req: request{
-                datatype: "gauge",
-                key: "m01",
-                value: 1.34,
+            store: s.MemStorage{
+                Data: map[string]interface{}{
+                    "valid": s.Gauge(2.32),
+                },
             },
             wanterr: nil,
             wantcode: http.StatusOK,
         },
         {
             name: "Test Invalid Post request counter metric",
-            req: request{
-                datatype: "counter",
-                key: "m01",
-                value: "ab",
+             store: s.MemStorage{
+                Data: map[string]interface{}{
+                    "valid": s.Counter(2),
+                },
             },
             // adding new line into format string as http server do
             wanterr: fmt.Errorf("%s: %s; %s\n",
@@ -59,13 +54,10 @@ func TestsendReport (t *testing.T) {
             }))
             defer server.Close()
 
-            req := server.URL + "/update/" + tc.req.datatype + fmt.Sprintf("/%v/%v", tc.req.key, tc.req.value)
-            err := sendReport(req)
+            options.serverAddress = strings.Replace(server.URL, "http://", "", 1)
+            err := ProcessReport(&tc.store)
             assert.Equal(t, tc.wanterr, err)
         })
     }
 }
 
-func TestprocessReport(t *testing.T){
-    //to do
-}
