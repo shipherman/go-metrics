@@ -22,7 +22,7 @@ func (m *MemStorage) Get(metric string) (interface{}, error) {
     if v, ok := m.Data[metric]; ok {
         return v, nil
     }
-    return "no such metric in memstorage", fmt.Errorf("not found")
+    return "No such metric in memstorage", fmt.Errorf("Not found")
 
 }
 
@@ -34,14 +34,14 @@ func (m *MemStorage) Update(mtype string, metric string, value interface{}) erro
     switch mtype {
         case "counter":
             if m.Data[metric] == nil {
-                m.Data[metric] = value
+                m.Data[metric] = value.(Counter)
                 return nil
             }
             m.Data[metric] = m.Data[metric].(Counter) + value.(Counter)
         case "gauge":
-            m.Data[metric] = value
+            m.Data[metric] = value.(Gauge)
         default:
-            return fmt.Errorf("wrong type of metric")
+            panic(fmt.Errorf("Wrong type of metric"))
     }
     return nil
 }
