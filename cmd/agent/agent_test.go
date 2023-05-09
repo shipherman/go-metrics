@@ -11,7 +11,7 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestSendPostRequest (t *testing.T) {
+func TestsendReport (t *testing.T) {
     type request struct {
         datatype string
         key any
@@ -60,12 +60,12 @@ func TestSendPostRequest (t *testing.T) {
             defer server.Close()
 
             req := server.URL + "/update/" + tc.req.datatype + fmt.Sprintf("/%v/%v", tc.req.key, tc.req.value)
-            err := SendPostRequest(req)
+            err := sendReport(req)
             assert.Equal(t, tc.wanterr, err)
         })
     }
 }
 
-func TestProcessReport(t *testing.T){
+func TestprocessReport(t *testing.T){
     //to do
 }
