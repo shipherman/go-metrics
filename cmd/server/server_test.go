@@ -13,8 +13,7 @@ import (
 
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/require"
-
-
+    "github.com/go-resty/resty/v2"
 )
 
 
@@ -43,13 +42,17 @@ func TestHandleMain (t *testing.T){
         t.Run(tc.name, func(t *testing.T){
             request := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
-            HandleMain(w, request)
+            client := resty.New()
 
+            fmt.Println(request.URL.Path)
+
+            resp, err := client.R().Get(request.Host + "/")
+            fmt.Println(resp.Status())
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err := result.Body.Close()
+            err = result.Body.Close()
             require.NoError(t, err)
         })
     }
@@ -157,11 +160,12 @@ func TestHandleUpdate (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            HandleUpdate(w, req)
+            http.DefaultServeMux.ServeHTTP(w, req)
 
             result := w.Result()
 
-            fmt.Printf("%s\n", result.Status)
+//             fmt.Printf("%s", req.RequestURI)
+//             fmt.Printf("%s\n", result.Status)
 
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
@@ -250,7 +254,8 @@ func TestHandleValue (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 //             fmt.Println(reqString)
-            HandleUpdate(w, req)
+
+            http.DefaultServeMux.ServeHTTP(w, req)
 
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
             rContext = chi.NewRouteContext()
@@ -258,7 +263,7 @@ func TestHandleValue (t *testing.T) {
             rContext.URLParams.Add("metric", tc.want.metricName,)
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            HandleValue(w, req)
+            http.DefaultServeMux.ServeHTTP(w, req)
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)

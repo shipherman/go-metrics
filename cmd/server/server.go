@@ -10,7 +10,7 @@ import (
     "github.com/go-chi/chi/v5"
 
     s "github.com/shipherman/go-metrics/internal/storage"
-    h "github.com/shipherman/go-metrics/internal/handlers"
+//     h "github.com/shipherman/go-metrics/internal/handlers"
 )
 
 //storage
@@ -38,10 +38,10 @@ func main() {
 
     // Routers
     router := chi.NewRouter()
-    router.Get("/", h.HandleMain(&mem))
-    router.Post("/update/{type}/{metric}/{value}", h.HandleUpdate(&mem))
-    router.Get("/value/gauge/{metric}", h.HandleValue(&mem))
-    router.Get("/value/counter/{metric}", h.HandleValue(&mem))
+    router.Get("/", HandleMain)
+    router.Post("/update/{type}/{metric}/{value}", HandleUpdate)
+    router.Get("/value/gauge/{metric}", HandleValue)
+    router.Get("/value/counter/{metric}", HandleValue)
 
     log.Println("Starting server...")
     //run server
