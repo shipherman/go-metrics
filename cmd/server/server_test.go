@@ -1,8 +1,6 @@
 package main
 
 import (
-//     "io"
-    "fmt"
     "context"
     "strings"
     "testing"
@@ -13,7 +11,6 @@ import (
 
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/require"
-    "github.com/go-resty/resty/v2"
 )
 
 
@@ -42,17 +39,13 @@ func TestHandleMain (t *testing.T){
         t.Run(tc.name, func(t *testing.T){
             request := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
-            client := resty.New()
+            HandleMain(w, request)
 
-            fmt.Println(request.URL.Path)
-
-            resp, err := client.R().Get(request.Host + "/")
-            fmt.Println(resp.Status())
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err = result.Body.Close()
+            err := result.Body.Close()
             require.NoError(t, err)
         })
     }
@@ -160,12 +153,9 @@ func TestHandleUpdate (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            http.DefaultServeMux.ServeHTTP(w, req)
+            HandleUpdate(w, req)
 
             result := w.Result()
-
-//             fmt.Printf("%s", req.RequestURI)
-//             fmt.Printf("%s\n", result.Status)
 
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
@@ -253,9 +243,7 @@ func TestHandleValue (t *testing.T) {
             rContext.URLParams.Add("value", tc.request.metricValue,)
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
-//             fmt.Println(reqString)
-
-            http.DefaultServeMux.ServeHTTP(w, req)
+            HandleUpdate(w, req)
 
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
             rContext = chi.NewRouteContext()
@@ -263,7 +251,7 @@ func TestHandleValue (t *testing.T) {
             rContext.URLParams.Add("metric", tc.want.metricName,)
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            http.DefaultServeMux.ServeHTTP(w, req)
+            HandleValue(w, req)
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
