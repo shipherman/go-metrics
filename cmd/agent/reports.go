@@ -8,47 +8,46 @@ import (
     "net/http"
     "math/rand"
 
-    s "github.com/shipherman/go-metrics/internal/storage"
+    "github.com/shipherman/go-metrics/internal/storage"
 )
 
-//init MemStorage
-var m = s.MemStorage{Data: make(map[string]interface{})}
-
-//MemStats instance
-var stat runtime.MemStats
+const contentType string = "text/plain"
+const counterType string = "counter"
+const gaugeType string = "gauge"
 
 
-func readMemStats(m *s.MemStorage) {
+func readMemStats(m *storage.MemStorage) {
+    var stat runtime.MemStats
     runtime.ReadMemStats(&stat)
-    m.Update("gauge", "Alloc", s.Gauge(stat.Alloc))
-    m.Update("gauge", "BuckHashSys", s.Gauge(stat.BuckHashSys))
-    m.Update("gauge", "Frees", s.Gauge(stat.Frees))
-    m.Update("gauge", "GCCPUFraction", s.Gauge(stat.GCCPUFraction))
-    m.Update("gauge", "GCSys", s.Gauge(stat.GCSys))
-    m.Update("gauge", "HeapAlloc", s.Gauge(stat.HeapAlloc))
-    m.Update("gauge", "HeapIdle", s.Gauge(stat.HeapIdle))
-    m.Update("gauge", "HeapInuse", s.Gauge(stat.HeapInuse))
-    m.Update("gauge", "HeapObjects", s.Gauge(stat.HeapObjects))
-    m.Update("gauge", "HeapReleased", s.Gauge(stat.HeapReleased))
-    m.Update("gauge", "HeapSys", s.Gauge(stat.HeapSys))
-    m.Update("gauge", "LastGC", s.Gauge(stat.LastGC))
-    m.Update("gauge", "Lookups", s.Gauge(stat.Lookups))
-    m.Update("gauge", "MCacheInuse", s.Gauge(stat.MCacheInuse))
-    m.Update("gauge", "MCacheSys", s.Gauge(stat.MCacheSys))
-    m.Update("gauge", "MSpanInuse", s.Gauge(stat.MSpanInuse))
-    m.Update("gauge", "MSpanSys", s.Gauge(stat.MSpanSys))
-    m.Update("gauge", "Mallocs", s.Gauge(stat.Mallocs))
-    m.Update("gauge", "NextGC", s.Gauge(stat.NextGC))
-    m.Update("gauge", "NumForcedGC", s.Gauge(stat.NumForcedGC))
-    m.Update("gauge", "NumGC", s.Gauge(stat.NumGC))
-    m.Update("gauge", "OtherSys", s.Gauge(stat.OtherSys))
-    m.Update("gauge", "PauseTotalNs", s.Gauge(stat.PauseTotalNs))
-    m.Update("gauge", "StackInuse", s.Gauge(stat.StackInuse))
-    m.Update("gauge", "StackSys", s.Gauge(stat.StackSys))
-    m.Update("gauge", "Sys", s.Gauge(stat.Sys))
-    m.Update("gauge", "TotalAlloc", s.Gauge(stat.TotalAlloc))
-    m.Update("gauge", "RandomValue", s.Gauge(rand.Float32()))
-    m.Update("counter", "PollCount", s.Counter(1))
+    m.UpdateGauge("Alloc", storage.Gauge(stat.Alloc))
+    m.UpdateGauge("BuckHashSys", storage.Gauge(stat.BuckHashSys))
+    m.UpdateGauge("Frees", storage.Gauge(stat.Frees))
+    m.UpdateGauge("GCCPUFraction", storage.Gauge(stat.GCCPUFraction))
+    m.UpdateGauge("GCSys", storage.Gauge(stat.GCSys))
+    m.UpdateGauge("HeapAlloc", storage.Gauge(stat.HeapAlloc))
+    m.UpdateGauge("HeapIdle", storage.Gauge(stat.HeapIdle))
+    m.UpdateGauge("HeapInuse", storage.Gauge(stat.HeapInuse))
+    m.UpdateGauge("HeapObjects", storage.Gauge(stat.HeapObjects))
+    m.UpdateGauge("HeapReleased", storage.Gauge(stat.HeapReleased))
+    m.UpdateGauge("HeapSys", storage.Gauge(stat.HeapSys))
+    m.UpdateGauge("LastGC", storage.Gauge(stat.LastGC))
+    m.UpdateGauge("Lookups", storage.Gauge(stat.Lookups))
+    m.UpdateGauge("MCacheInuse", storage.Gauge(stat.MCacheInuse))
+    m.UpdateGauge("MCacheSys", storage.Gauge(stat.MCacheSys))
+    m.UpdateGauge("MSpanInuse", storage.Gauge(stat.MSpanInuse))
+    m.UpdateGauge("MSpanSys", storage.Gauge(stat.MSpanSys))
+    m.UpdateGauge("Mallocs", storage.Gauge(stat.Mallocs))
+    m.UpdateGauge("NextGC", storage.Gauge(stat.NextGC))
+    m.UpdateGauge("NumForcedGC", storage.Gauge(stat.NumForcedGC))
+    m.UpdateGauge("NumGC", storage.Gauge(stat.NumGC))
+    m.UpdateGauge("OtherSys", storage.Gauge(stat.OtherSys))
+    m.UpdateGauge("PauseTotalNs", storage.Gauge(stat.PauseTotalNs))
+    m.UpdateGauge("StackInuse", storage.Gauge(stat.StackInuse))
+    m.UpdateGauge("StackSys", storage.Gauge(stat.StackSys))
+    m.UpdateGauge("Sys", storage.Gauge(stat.Sys))
+    m.UpdateGauge("TotalAlloc", storage.Gauge(stat.TotalAlloc))
+    m.UpdateGauge("RandomValue", storage.Gauge(rand.Float32()))
+    m.UpdateCounter("PollCount", storage.Counter(1))
 }
 
 func sendReport (req string) error {
@@ -71,20 +70,22 @@ func sendReport (req string) error {
     return nil
 }
 
-func ProcessReport (data *s.MemStorage) error {
+func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
     var mtype string
 
     //send request to the server
-    for k, v := range data.Data {
+    for k, v := range m.Data{
         switch v.(type){
-            case s.Gauge:
-                mtype = "gauge"
-            case s.Counter:
-                mtype = "counter"
+            case storage.Gauge:
+                mtype = gaugeType //replace with const string
+            case storage.Counter:
+                mtype = contentType
+            default:
+                return fmt.Errorf("uknown type of metric")
         }
         req := strings.Join([]string{"http:/",
-                         options.serverAddress,
+                         serverAddress,
                          "update",
                          mtype,
                          fmt.Sprintf("%v/%v",k,v)}, "/")

@@ -2,46 +2,32 @@ package main
 
 import (
     "flag"
-    "os"
-    "strconv"
+
+    "github.com/caarlos0/env"
 )
 
-//cli options
-type Options struct {
-    serverAddress string `env:"ADDRESS"`
-    pollInterval int `env:"POLL_INTERVAL"`
-    reportInterval int `env:"REPORT_INTERVAL"`
+type options struct {
+    ServerAddress string `env:"ADDRESS"`
+    PollInterval int `env:"POLL_INTERVAL"`
+    ReportInterval int `env:"REPORT_INTERVAL"`
 }
 
-var options Options
 
+func parseOptions () (options, error) {
+    var opt options
 
-func parseOptions () error {
-// 	fmt.Println(options)
-    flag.IntVar(&options.pollInterval, "p", 2,
+    flag.IntVar(&opt.PollInterval, "p", 2,
                      "Frequensy in seconds for collecting metrics")
-    flag.IntVar(&options.reportInterval, "r", 10,
+    flag.IntVar(&opt.ReportInterval, "r", 10,
                      "Frequensy in seconds for sending report to the server")
-    flag.StringVar(&options.serverAddress, "a", "localhost:8080",
+    flag.StringVar(&opt.ServerAddress, "a", "localhost:8080",
                 "Address of the server to send metrics")
     flag.Parse()
 
-    if l := os.Getenv("ADDRESS"); l != "" {
-        options.serverAddress = l
+    err := env.Parse(&opt)
+    if err != nil {
+        return opt, err
     }
-    if l := os.Getenv("POLL_INTERVAL"); l != "" {
-        i, err := strconv.Atoi(l)
-        if err != nil {
-            return err
-        }
-        options.pollInterval = i
-    }
-    if l := os.Getenv("REPORT_INTERVAL"); l != "" {
-        i, err := strconv.Atoi(l)
-        if err != nil {
-            return err
-        }
-        options.reportInterval = i
-    }
-    return nil
+
+    return opt, nil
 }

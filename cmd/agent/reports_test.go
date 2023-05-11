@@ -54,8 +54,8 @@ func TestProcessReport (t *testing.T) {
             }))
             defer server.Close()
 
-            options.serverAddress = strings.Replace(server.URL, "http://", "", 1)
-            err := ProcessReport(&tc.store)
+//             .serverAddress =
+            err := ProcessReport(strings.Replace(server.URL, "http://", "", 1), tc.store)
             assert.Equal(t, tc.wanterr, err)
         })
     }
