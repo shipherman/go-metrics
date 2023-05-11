@@ -11,12 +11,12 @@ type MemStorage struct {
     Data map[string]interface{}
 }
 
-type Storage interface {
-    Update(mtype string, metric string, value interface{}) error
-    Get(metric string) error
-    GetAll() map[string]interface{}
-}
 
+func New() (MemStorage) {
+    return MemStorage{
+        Data: map[string]interface{}{},
+    }
+}
 
 func (m *MemStorage) Get(metric string) (interface{}, error) {
     if v, ok := m.Data[metric]; ok {
@@ -30,18 +30,14 @@ func (m *MemStorage) GetAll() map[string]interface{} {
     return m.Data
 }
 
-func (m *MemStorage) Update(mtype string, metric string, value interface{}) error {
-    switch mtype {
-        case "counter":
-            if m.Data[metric] == nil {
-                m.Data[metric] = value.(Counter)
-                return nil
-            }
-            m.Data[metric] = m.Data[metric].(Counter) + value.(Counter)
-        case "gauge":
-            m.Data[metric] = value.(Gauge)
-        default:
-            panic(fmt.Errorf("wrong type of metric"))
+func (m *MemStorage) UpdateGauge(metric string, value interface{}) {
+    m.Data[metric] = value.(Gauge)
+}
+
+func (m *MemStorage) UpdateCounter(metric string, value interface{}) {
+    if m.Data[metric] == nil {
+        m.Data[metric] = value.(Counter)
+        return
     }
-    return nil
+    m.Data[metric] = m.Data[metric].(Counter) + value.(Counter)
 }
