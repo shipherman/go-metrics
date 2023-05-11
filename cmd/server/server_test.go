@@ -6,6 +6,7 @@ import (
     "testing"
     "net/http"
     "net/http/httptest"
+    "github.com/shipherman/go-metrics/internal/handlers"
 
     "github.com/go-chi/chi/v5"
 
@@ -39,7 +40,9 @@ func TestHandleMain (t *testing.T){
         t.Run(tc.name, func(t *testing.T){
             request := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
-            HandleMain(w, request)
+
+            h := handlers.NewHandler()
+            h.HandleMain(w, request)
 
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
@@ -153,7 +156,8 @@ func TestHandleUpdate (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            HandleUpdate(w, req)
+            h := handlers.NewHandler()
+            h.HandleUpdate(w, req)
 
             result := w.Result()
 
@@ -243,7 +247,9 @@ func TestHandleValue (t *testing.T) {
             rContext.URLParams.Add("value", tc.request.metricValue,)
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
-            HandleUpdate(w, req)
+
+            h := handlers.NewHandler()
+            h.HandleUpdate(w, req)
 
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
             rContext = chi.NewRouteContext()
@@ -251,7 +257,7 @@ func TestHandleValue (t *testing.T) {
             rContext.URLParams.Add("metric", tc.want.metricName,)
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            HandleValue(w, req)
+            h.HandleValue(w, req)
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
