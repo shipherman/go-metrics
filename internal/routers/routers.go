@@ -1,4 +1,4 @@
-package main
+package routers
 
 import (
     "github.com/go-chi/chi/v5"
@@ -7,7 +7,7 @@ import (
 )
 
 
-func initRouter() chi.Router {
+func InitRouter() chi.Router {
     h := handlers.NewHandler()
 
     // Routers
