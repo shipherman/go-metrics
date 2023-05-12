@@ -46,6 +46,16 @@ func TestProcessReport (t *testing.T) {
                                 response),
             wantcode: http.StatusBadRequest,
         },
+        {
+            name: "Test invalid metric type",
+            store: s.MemStorage{
+                Data: map[string]interface{}{
+                    "valid": "s.Gauge(2.32)",
+                },
+            },
+            wanterr: fmt.Errorf("uknown type of metric"),
+            wantcode: http.StatusOK,
+        },
     }
     for _, tc := range tests {
         t.Run(tc.name, func(t *testing.T){
