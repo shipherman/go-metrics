@@ -61,6 +61,7 @@ func sendReport (req string) error {
         if err != nil {
             return err
         }
+        fmt.Println(req)
         return fmt.Errorf("%s: %s; %s",
                           "Can't send report to the server",
                           resp.Status,
@@ -80,7 +81,7 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
             case storage.Gauge:
                 mtype = gaugeType //replace with const string
             case storage.Counter:
-                mtype = contentType
+                mtype = counterType
             default:
                 return fmt.Errorf("uknown type of metric")
         }
