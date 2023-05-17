@@ -21,7 +21,8 @@ const counterType = "counter"
 const gaugeType = "gauge"
 
 
-func (h *handler) HandleMain(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleMain() http.Handler {
+    fn := func (w http.ResponseWriter, r *http.Request) {
     //write static html page with all the items to the response; unsorted
     body := `
         <!DOCTYPE html>
@@ -44,39 +45,47 @@ func (h *handler) HandleMain(w http.ResponseWriter, r *http.Request) {
     body = body + " </table>\n </body>\n</html>"
 
     w.Write([]byte(body))
+    }
+    return http.HandlerFunc(fn)
 }
 
-func (h *handler) HandleUpdate (w http.ResponseWriter, r *http.Request) {
-    // get context params
-    metricType := chi.URLParam(r, "type")
-    metric := chi.URLParam(r, "metric")
-    value := chi.URLParam(r, "value")
+func (h *handler) HandleUpdate() http.Handler {
+    fn := func(w http.ResponseWriter, r *http.Request) {
+        // get context params
+        metricType := chi.URLParam(r, "type")
+        metric := chi.URLParam(r, "metric")
+        value := chi.URLParam(r, "value")
 
-    // find out metric type
-    switch metricType {
-        case counterType:
-            v, err := strconv.Atoi(value)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusBadRequest)
-            }
-            h.store.UpdateCounter(metric, storage.Counter(v))
-        case gaugeType:
-            v, err := strconv.ParseFloat(value, 64)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusBadRequest)
-            }
-            h.store.UpdateGauge(metric, storage.Gauge(v))
-        default:
-            http.Error(w, "Incorrect metric type", http.StatusBadRequest)
+        // find out metric type
+        switch metricType {
+            case counterType:
+                v, err := strconv.Atoi(value)
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusBadRequest)
+                }
+                h.store.UpdateCounter(metric, storage.Counter(v))
+            case gaugeType:
+                v, err := strconv.ParseFloat(value, 64)
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusBadRequest)
+                }
+                h.store.UpdateGauge(metric, storage.Gauge(v))
+            default:
+                http.Error(w, "Incorrect metric type", http.StatusBadRequest)
+        }
     }
+    return http.HandlerFunc(fn)
 }
 
-func (h *handler) HandleValue(w http.ResponseWriter, r *http.Request) {
-    metric := chi.URLParam(r, "metric")
-    v, err := h.store.Get(metric)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusNotFound)
+func (h *handler) HandleValue() http.Handler {
+    fn := func(w http.ResponseWriter, r *http.Request) {
+        metric := chi.URLParam(r, "metric")
+        v, err := h.store.Get(metric)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusNotFound)
+        }
+        fmt.Fprint(w, v)
     }
-    fmt.Fprint(w, v)
+    return http.HandlerFunc(fn)
 }
 
