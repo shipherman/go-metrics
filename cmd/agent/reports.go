@@ -2,14 +2,23 @@ package main
 
 import (
     "fmt"
-    "io"
     "runtime"
     "strings"
     "net/http"
     "math/rand"
+    "encoding/json"
+    "bytes"
 
     "github.com/shipherman/go-metrics/internal/storage"
 )
+
+
+type Metrics struct {
+    ID    string   `json:"id"`              // имя метрики
+    MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+    Counter storage.Counter   `json:"counter"` // значение метрики в случае передачи counter
+    Gauge storage.Gauge `json:"gauge"` // значение метрики в случае передачи gauge
+}
 
 const contentType string = "text/plain"
 const counterType string = "counter"
@@ -50,50 +59,50 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateCounter("PollCount", storage.Counter(1))
 }
 
-func sendReport (req string) error {
-    reader := new(io.Reader)
-    resp, err := http.Post(req, contentType, *reader)
-    if err != nil {
-        return err
-    }
-    if resp.StatusCode != http.StatusOK {
-        line, err := io.ReadAll(resp.Body)
-        if err != nil {
-            return err
-        }
-        fmt.Println(req)
-        return fmt.Errorf("%s: %s; %s",
-                          "Can't send report to the server",
-                          resp.Status,
-                          line)
-    }
-    resp.Body.Close()
-    return nil
-}
-
 func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
-    var mtype string
+
+    var metrics Metrics
+
+    serverAddress = strings.Join([]string{"http:/",serverAddress,"update/"}, "/")
 
     //send request to the server
     for k, v := range m.Data{
         switch v.(type){
             case storage.Gauge:
-                mtype = gaugeType //replace with const string
+                metrics = Metrics{ID:k, MType:gaugeType, Gauge:v.(storage.Gauge)}
             case storage.Counter:
-                mtype = counterType
+                metrics = Metrics{ID:k, MType:counterType, Counter:v.(storage.Counter)}
             default:
                 return fmt.Errorf("uknown type of metric")
         }
-        req := strings.Join([]string{"http:/",
-                         serverAddress,
-                         "update",
-                         mtype,
-                         fmt.Sprintf("%v/%v",k,v)}, "/")
-        err := sendReport(req)
+
+        data, err := json.Marshal(metrics)
         if err != nil {
             return err
         }
+
+        fmt.Println(string(data))
+
+        request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
+        request.Header.Set("Content-Type", contentType)
+
+        client := &http.Client{}
+        resp, err := client.Do(request)
+
+        if err != nil {
+            return err
+        }
+
+        if resp.StatusCode != http.StatusOK {
+            return fmt.Errorf("%s: %s; %s",
+                            "Can't send report to the server",
+                            resp.Status,
+                            "")
+        }
+
+        defer resp.Body.Close()
+
     }
     return nil
 }
