@@ -13,10 +13,12 @@ func InitRouter() chi.Router {
 
     // Routers
     router := chi.NewRouter()
-    router.Get("/", logger.LogHandler(h.HandleMain()))
-    router.Post("/update/{type}/{metric}/{value}", logger.LogHandler(h.HandleUpdate()))
-    router.Get("/value/gauge/{metric}", logger.LogHandler(h.HandleValue()))
-    router.Get("/value/counter/{metric}", logger.LogHandler(h.HandleValue()))
-
+    router.Use(logger.LogHandler)
+    router.Get("/", h.HandleMain)
+    router.Post("/update/{type}/{metric}/{value}", h.HandleUpdate)
+    router.Get("/value/gauge/{metric}", h.HandleValue)
+    router.Get("/value/counter/{metric}", h.HandleValue)
+    router.Get("/value/",h.HandleJSONValue)
+    router.Post("/update/",h.HandleJSONUpdate)
     return router
 }

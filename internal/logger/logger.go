@@ -32,11 +32,15 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 }
 
 
-func LogHandler(h http.Handler) http.HandlerFunc {
+func LogHandler(next http.Handler) http.Handler {
  logFn := func(w http.ResponseWriter, r *http.Request) {
+
         start := time.Now()
 
-        logger, _ := zap.NewDevelopment()
+        logger, err := zap.NewDevelopment()
+        if err != nil {
+            panic(err)
+        }
         sugar := logger.Sugar()
 
         responseData := &responseData {
@@ -47,7 +51,7 @@ func LogHandler(h http.Handler) http.HandlerFunc {
             ResponseWriter: w,
             responseData: responseData,
         }
-        h.ServeHTTP(&lw, r)
+        next.ServeHTTP(&lw, r)
 
         duration := time.Since(start)
 
