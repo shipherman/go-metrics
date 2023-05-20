@@ -41,8 +41,7 @@ func TestHandleMain (t *testing.T){
             w := httptest.NewRecorder()
 
             h := NewHandler()
-            f := h.HandleMain()
-            f.ServeHTTP(w, req)
+            h.HandleMain(w,req)
 
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
@@ -157,8 +156,7 @@ func TestHandleUpdate (t *testing.T) {
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
             h := NewHandler()
-            f := h.HandleUpdate()
-            f.ServeHTTP(w, req)
+            h.HandleUpdate(w, req)
 
             result := w.Result()
 
@@ -250,8 +248,7 @@ func TestHandleValue (t *testing.T) {
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
             h := NewHandler()
-            f := h.HandleUpdate()
-            f.ServeHTTP(w, req)
+            h.HandleUpdate(w,req)
 
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
             rContext = chi.NewRouteContext()
@@ -259,8 +256,7 @@ func TestHandleValue (t *testing.T) {
             rContext.URLParams.Add("metric", tc.want.metricName,)
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            f = h.HandleValue()
-            f.ServeHTTP(w, req)
+            h.HandleValue(w,req)
 
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
