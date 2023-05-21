@@ -96,12 +96,14 @@ func (h *handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
 
     _, err := buf.ReadFrom(r.Body)
     if err != nil {
-        panic(err)
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
     }
 
     err = json.Unmarshal(buf.Bytes(), &m)
     if err != nil {
-        panic(err)
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
     }
 
     if _, ok := h.store.Data[m.ID]; !ok {
@@ -109,7 +111,18 @@ func (h *handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    resp, err := json.Marshal(h.store.Data[m.ID])
+
+    switch m.MType {
+        case counterType:
+            v := int64(h.store.Data[m.ID].(storage.Counter))
+            m.Counter = &v
+        case gaugeType:
+            v := float64(h.store.Data[m.ID].(storage.Gauge))
+            m.Gauge = &v
+    }
+
+
+    resp, err := json.Marshal(m)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -127,19 +140,33 @@ func (h *handler) HandleJSONUpdate(w http.ResponseWriter, r *http.Request) {
 
     _, err := buf.ReadFrom(r.Body)
     if err != nil {
-        panic(err)
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
     }
 
     err = json.Unmarshal(buf.Bytes(), &m)
     if err != nil {
-        panic(err)
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
     }
+
+    fmt.Println(m)
 
     switch m.MType {
         case counterType:
+            if m.Counter == nil {
+                http.Error(w, "metric value should not be empty", http.StatusBadRequest)
+                return
+            }
             h.store.UpdateCounter(m.ID, storage.Counter(*m.Counter))
+            w.WriteHeader(http.StatusOK)
         case gaugeType:
+            if m.Gauge == nil {
+                http.Error(w, "metric value should not be empty", http.StatusBadRequest)
+                return
+            }
             h.store.UpdateGauge(m.ID, storage.Gauge(*m.Gauge))
+            w.WriteHeader(http.StatusOK)
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }

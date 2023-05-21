@@ -82,7 +82,7 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
             return err
         }
 
-        fmt.Println(string(data))
+//         fmt.Println(string(data))
 
         request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
         request.Header.Set("Content-Type", contentType)

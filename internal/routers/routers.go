@@ -18,7 +18,7 @@ func InitRouter() chi.Router {
     router.Post("/update/{type}/{metric}/{value}", h.HandleUpdate)
     router.Get("/value/gauge/{metric}", h.HandleValue)
     router.Get("/value/counter/{metric}", h.HandleValue)
-    router.Get("/value/",h.HandleJSONValue)
+    router.Post("/value/",h.HandleJSONValue)
     router.Post("/update/",h.HandleJSONUpdate)
     return router
 }
