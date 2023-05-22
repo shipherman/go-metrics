@@ -53,7 +53,7 @@ func (h *handler) HandleMain(w http.ResponseWriter, r *http.Request) {
     body = body + " </table>\n </body>\n</html>"
 
     // respond to agent
-    w.Header().Set("Content-Type", "text/html")
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
     w.WriteHeader(http.StatusOK)
     w.Write([]byte(body))
 }

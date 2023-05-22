@@ -4,7 +4,6 @@ import (
     "compress/gzip"
     "net/http"
     "io"
-    "fmt"
     "strings"
 
 )
@@ -38,13 +37,6 @@ func zipable(t string) bool {
 func GzipHandle(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-            next.ServeHTTP(w, r)
-            return
-        }
-
-        // check if content should be archived
-        if t := w.Header().Get("Content-Type"); !zipable(t) {
-            fmt.Println(t)
             next.ServeHTTP(w, r)
             return
         }
