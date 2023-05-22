@@ -69,11 +69,11 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
 
     //send request to the server
     for k, v := range m.Data{
-        switch v.(type){
+        switch v := v.(type){
             case storage.Gauge:
-                metrics = Metrics{ID:k, MType:gaugeType, Value:v.(storage.Gauge)}
+                metrics = Metrics{ID:k, MType:gaugeType, Value:v}
             case storage.Counter:
-                metrics = Metrics{ID:k, MType:counterType, Delta:v.(storage.Counter)}
+                metrics = Metrics{ID:k, MType:counterType, Delta:v}
             default:
                 return fmt.Errorf("uknown type of metric")
         }
@@ -86,6 +86,9 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
 //         fmt.Println(string(data))
 
         request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
+        if err != nil {
+            return err
+        }
         request.Header.Set("Content-Type", contentType)
 
         client := &http.Client{}
