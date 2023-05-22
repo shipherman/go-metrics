@@ -16,8 +16,8 @@ import (
 type Metrics struct {
     ID    string   `json:"id"`              // имя метрики
     MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-    Counter storage.Counter   `json:"counter"` // значение метрики в случае передачи counter
-    Gauge storage.Gauge `json:"gauge"` // значение метрики в случае передачи gauge
+    Delta storage.Counter   `json:"delta"` // значение метрики в случае передачи counter
+    Value storage.Gauge `json:"value"` // значение метрики в случае передачи gauge
 }
 
 const contentType string = "text/plain"
@@ -70,9 +70,9 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
     for k, v := range m.Data{
         switch v.(type){
             case storage.Gauge:
-                metrics = Metrics{ID:k, MType:gaugeType, Gauge:v.(storage.Gauge)}
+                metrics = Metrics{ID:k, MType:gaugeType, Value:v.(storage.Gauge)}
             case storage.Counter:
-                metrics = Metrics{ID:k, MType:counterType, Counter:v.(storage.Counter)}
+                metrics = Metrics{ID:k, MType:counterType, Delta:v.(storage.Counter)}
             default:
                 return fmt.Errorf("uknown type of metric")
         }

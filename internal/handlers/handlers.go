@@ -14,8 +14,8 @@ import (
 type Metrics struct {
     ID    string   `json:"id"`              // имя метрики
     MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-    Counter *int64   `json:"counter,omitempty"` // значение метрики в случае передачи counter
-    Gauge *float64 `json:"gauge,omitempty"` // значение метрики в случае передачи gauge
+    Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+    Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
 type handler struct {
@@ -106,8 +106,11 @@ func (h *handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    fmt.Println(m)
+
     if _, ok := h.store.Data[m.ID]; !ok {
         http.Error(w, "not found", http.StatusNotFound)
+
         return
     }
 
@@ -115,10 +118,10 @@ func (h *handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
     switch m.MType {
         case counterType:
             v := int64(h.store.Data[m.ID].(storage.Counter))
-            m.Counter = &v
+            m.Delta = &v
         case gaugeType:
             v := float64(h.store.Data[m.ID].(storage.Gauge))
-            m.Gauge = &v
+            m.Value = &v
     }
 
 
@@ -154,18 +157,18 @@ func (h *handler) HandleJSONUpdate(w http.ResponseWriter, r *http.Request) {
 
     switch m.MType {
         case counterType:
-            if m.Counter == nil {
+            if m.Delta == nil {
                 http.Error(w, "metric value should not be empty", http.StatusBadRequest)
                 return
             }
-            h.store.UpdateCounter(m.ID, storage.Counter(*m.Counter))
+            h.store.UpdateCounter(m.ID, storage.Counter(*m.Delta))
             w.WriteHeader(http.StatusOK)
         case gaugeType:
-            if m.Gauge == nil {
+            if m.Value == nil {
                 http.Error(w, "metric value should not be empty", http.StatusBadRequest)
                 return
             }
-            h.store.UpdateGauge(m.ID, storage.Gauge(*m.Gauge))
+            h.store.UpdateGauge(m.ID, storage.Gauge(*m.Value))
             w.WriteHeader(http.StatusOK)
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
