@@ -8,6 +8,7 @@ import (
     "math/rand"
     "encoding/json"
     "bytes"
+    "io"
 
     "github.com/shipherman/go-metrics/internal/storage"
 )
@@ -95,10 +96,11 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
         }
 
         if resp.StatusCode != http.StatusOK {
+            b, _ := io.ReadAll(resp.Body)
             return fmt.Errorf("%s: %s; %s",
                             "Can't send report to the server",
                             resp.Status,
-                            "")
+                            b)
         }
 
         defer resp.Body.Close()

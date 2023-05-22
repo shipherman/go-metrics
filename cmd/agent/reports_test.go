@@ -14,7 +14,7 @@ import (
 
 func TestProcessReport (t *testing.T) {
     // http server response body
-    response := "response"
+    responseBody := "response"
 
     tests := []struct {
         name string
@@ -43,7 +43,7 @@ func TestProcessReport (t *testing.T) {
             wanterr: fmt.Errorf("%s: %s; %s\n",
                                 "Can't send report to the server",
                                 "400 Bad Request",
-                                response),
+                                responseBody),
             wantcode: http.StatusBadRequest,
         },
         {
@@ -60,7 +60,7 @@ func TestProcessReport (t *testing.T) {
     for _, tc := range tests {
         t.Run(tc.name, func(t *testing.T){
             server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-                http.Error(rw, response, tc.wantcode)
+                http.Error(rw, responseBody, tc.wantcode)
             }))
             defer server.Close()
 
