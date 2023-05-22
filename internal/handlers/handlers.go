@@ -52,6 +52,9 @@ func (h *handler) HandleMain(w http.ResponseWriter, r *http.Request) {
     }
     body = body + " </table>\n </body>\n</html>"
 
+    // respond to agent
+    w.Header().Set("Content-Type", "text/html")
+    w.WriteHeader(http.StatusOK)
     w.Write([]byte(body))
 }
 
@@ -128,6 +131,7 @@ func (h *handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // respond to agent
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     w.Write(resp)
@@ -143,6 +147,8 @@ func (h *handler) HandleJSONUpdate(w http.ResponseWriter, r *http.Request) {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
+
+//     fmt.Println("inside HandleJSONUpdate", string(buf.Bytes()))
 
     err = json.Unmarshal(buf.Bytes(), &m)
     if err != nil {

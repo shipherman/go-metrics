@@ -3,7 +3,8 @@ package routers
 import (
     "github.com/go-chi/chi/v5"
     "github.com/shipherman/go-metrics/internal/handlers"
-    "github.com/shipherman/go-metrics/internal/logger"
+   "github.com/shipherman/go-metrics/internal/logger"
+    "github.com/shipherman/go-metrics/internal/gzip"
 
 )
 
@@ -14,6 +15,7 @@ func InitRouter() chi.Router {
     // Routers
     router := chi.NewRouter()
     router.Use(logger.LogHandler)
+    router.Use(gzip.GzipHandle)
     router.Get("/", h.HandleMain)
     router.Post("/update/{type}/{metric}/{value}", h.HandleUpdate)
     router.Get("/value/gauge/{metric}", h.HandleValue)

@@ -9,6 +9,8 @@ import (
     "encoding/json"
     "bytes"
 
+    "compress/gzip"
+
     "github.com/shipherman/go-metrics/internal/storage"
 )
 
@@ -20,7 +22,9 @@ type Metrics struct {
     Gauge storage.Gauge `json:"gauge"` // значение метрики в случае передачи gauge
 }
 
-const contentType string = "text/plain"
+const contentType string = "application/json"
+const compression string = "gzip"
+
 const counterType string = "counter"
 const gaugeType string = "gauge"
 
@@ -59,6 +63,23 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateCounter("PollCount", storage.Counter(1))
 }
 
+func Compress(data []byte) ([]byte, error) {
+    var b bytes.Buffer
+    w, err := gzip.NewWriterLevel(&b, gzip.BestCompression)
+    if err != nil {
+        return nil, fmt.Errorf("failed init compress writer: %v", err)
+    }
+    _, err = w.Write(data)
+    if err != nil {
+        return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+    }
+    err = w.Close()
+    if err != nil {
+        return nil, fmt.Errorf("failed compress data: %v", err)
+    }
+    return b.Bytes(), nil
+}
+
 func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
 
@@ -83,9 +104,15 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
         }
 
 //         fmt.Println(string(data))
+        data, err = Compress(data)
+        if err != nil {
+            return err
+        }
 
         request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
         request.Header.Set("Content-Type", contentType)
+        request.Header.Set("Content-Encoding", compression)
+        request.Header.Set("Accept-Encoding", compression)
 
         client := &http.Client{}
         resp, err := client.Do(request)
