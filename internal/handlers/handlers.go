@@ -15,7 +15,6 @@ import (
 
     "github.com/shipherman/go-metrics/internal/storage"
     "github.com/shipherman/go-metrics/internal/storage/filestore"
-    "github.com/shipherman/go-metrics/internal/options"
 )
 
 type Metrics struct {
@@ -35,14 +34,14 @@ const counterType = "counter"
 const gaugeType = "gauge"
 
 
-func NewHandler(cfg options.Options) (Handler, error) {
+func NewHandler(filename string, interval int, restore bool) (Handler, error) {
     var h Handler
     h.Store = storage.New()
-    h.filename = cfg.Filename
-    h.ticker = time.NewTicker(time.Duration(cfg.Interval) * time.Second)
+    h.filename = filename
+    h.ticker = time.NewTicker(time.Duration(interval) * time.Second)
 
     // Read saved metrics from file
-    if cfg.Restore {
+    if restore {
         f, err := os.OpenFile(h.filename, os.O_RDONLY | os.O_CREATE, 0666)
         defer f.Close()
 

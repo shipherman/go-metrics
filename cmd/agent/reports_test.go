@@ -25,7 +25,7 @@ func TestProcessReport (t *testing.T) {
         {
             name: "Test Valid Post request gauge metric",
             store: s.MemStorage{
-                Data: map[string]interface{}{
+                GaugeData: map[string]s.Gauge{
                     "valid": s.Gauge(2.32),
                 },
             },
@@ -35,7 +35,7 @@ func TestProcessReport (t *testing.T) {
         {
             name: "Test Invalid Post request counter metric",
              store: s.MemStorage{
-                Data: map[string]interface{}{
+                CounterData: map[string]s.Counter{
                     "valid": s.Counter(2),
                 },
             },
@@ -45,16 +45,6 @@ func TestProcessReport (t *testing.T) {
                                 "400 Bad Request",
                                 responseBody),
             wantcode: http.StatusBadRequest,
-        },
-        {
-            name: "Test invalid metric type",
-            store: s.MemStorage{
-                Data: map[string]interface{}{
-                    "valid": "s.Gauge(2.32)",
-                },
-            },
-            wanterr: fmt.Errorf("uknown type of metric"),
-            wantcode: http.StatusOK,
         },
     }
     for _, tc := range tests {

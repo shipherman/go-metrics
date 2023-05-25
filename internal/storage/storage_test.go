@@ -13,12 +13,12 @@ func TestNew(t *testing.T) {
     assert.IsType(t, MemStorage{}, h)
 }
 
-func TestGet(t *testing.T) {
+func TestGetCounter(t *testing.T) {
    h := New()
    key := "key"
    val := Counter(1)
 
-   h.Data[key] = val
+   h.CounterData[key] = val
 
 
    v, err := h.Get(key)
@@ -29,17 +29,17 @@ func TestGet(t *testing.T) {
    assert.Error(t, err, "Test invalid key")
 }
 
-func TestGetAll(t *testing.T) {
+func TestGetAllCounters(t *testing.T) {
     h := New()
     key := "key"
     val := Counter(1)
-    h.Data[key] = val
+    h.CounterData[key] = val
 
-    expect := map[string]interface{}{
+    expect := map[string]Counter{
             "key": Counter(1),
     }
 
-    v := h.GetAll()
+    v := h.GetAllCounters()
 
     assert.Equal(t, expect, v, "Test GetAll")
 }

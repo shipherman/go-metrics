@@ -23,12 +23,18 @@ func TestHandleMain (t *testing.T){
         name string
         request string
         httpMethod string
+        filename string
+        interval int
+        restore bool
         want want
     }{
         {
             name: "Test root page",
             request: "/",
             httpMethod: http.MethodPost,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/html; charset=utf-8",
                 statusCode: http.StatusOK,
@@ -40,14 +46,15 @@ func TestHandleMain (t *testing.T){
             req := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
 
-            h := NewHandler()
+            h, err := NewHandler(tc.filename, tc.interval, tc.restore)
+            require.NoError(t, err)
             h.HandleMain(w,req)
 
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err := result.Body.Close()
+            err = result.Body.Close()
             require.NoError(t, err)
         })
     }
@@ -69,6 +76,9 @@ func TestHandleUpdate (t *testing.T) {
         name string
         request request
         httpMethod string
+        filename string
+        interval int
+        restore bool
         want want
     }{
         {
@@ -79,6 +89,9 @@ func TestHandleUpdate (t *testing.T) {
                 metricValue: "1.3",
             },
             httpMethod: http.MethodPost,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusOK,
@@ -92,6 +105,9 @@ func TestHandleUpdate (t *testing.T) {
                 metricValue: "1ad3",
             },
             httpMethod: http.MethodPost,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusBadRequest,
@@ -105,6 +121,9 @@ func TestHandleUpdate (t *testing.T) {
                 metricValue: "1",
             },
             httpMethod: http.MethodPost,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusOK,
@@ -118,6 +137,9 @@ func TestHandleUpdate (t *testing.T) {
                 metricValue: "1.4",
             },
             httpMethod: http.MethodPost,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusBadRequest,
@@ -131,6 +153,9 @@ func TestHandleUpdate (t *testing.T) {
                 metricValue: "1.4",
             },
             httpMethod: http.MethodPost,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusBadRequest,
@@ -155,14 +180,15 @@ func TestHandleUpdate (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            h := NewHandler()
+            h, err := NewHandler(tc.filename, tc.interval, tc.restore)
+            require.NoError(t, err)
             h.HandleUpdate(w, req)
 
             result := w.Result()
 
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err := result.Body.Close()
+            err = result.Body.Close()
             require.NoError(t, err)
         })
     }
@@ -185,6 +211,9 @@ func TestHandleValue (t *testing.T) {
         name string
         request request
         httpMethod string
+        filename string
+        interval int
+        restore bool
         want want
     }{
         {
@@ -195,6 +224,9 @@ func TestHandleValue (t *testing.T) {
                 metricValue: "1.2",
             },
             httpMethod: http.MethodGet,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusOK,
@@ -209,6 +241,9 @@ func TestHandleValue (t *testing.T) {
                 metricValue: "2",
             },
             httpMethod: http.MethodGet,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusOK,
@@ -223,6 +258,9 @@ func TestHandleValue (t *testing.T) {
                 metricValue: "3",
             },
             httpMethod: http.MethodGet,
+            filename: "/tmp/metrics-db.json",
+            interval: 20,
+            restore: true,
             want: want{
                 contentType: "text/plain; charset=utf-8",
                 statusCode: http.StatusNotFound,
@@ -247,7 +285,8 @@ func TestHandleValue (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            h := NewHandler()
+            h, err := NewHandler(tc.filename, tc.interval, tc.restore)
+            require.NoError(t, err)
             h.HandleUpdate(w,req)
 
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
@@ -261,7 +300,7 @@ func TestHandleValue (t *testing.T) {
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err := result.Body.Close()
+            err = result.Body.Close()
             require.NoError(t, err)
         })
     }
