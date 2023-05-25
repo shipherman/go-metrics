@@ -30,7 +30,7 @@ func main() {
         case <-pollTicker.C:
             readMemStats(&m)
         case <-reportTicker.C:
-            err := ProcessReport(cfg.ServerAddress, &m)
+            err := ProcessReport(cfg.ServerAddress, m)
             if err != nil {
                 log.Println(err)
             }

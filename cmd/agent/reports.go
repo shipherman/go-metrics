@@ -119,7 +119,7 @@ func sendReport (serverAddress string, metrics Metrics) error {
     return nil
 }
 
-func ProcessReport (serverAddress string, m *storage.MemStorage) error {
+func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
 
     var metrics Metrics
