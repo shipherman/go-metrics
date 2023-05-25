@@ -9,6 +9,7 @@ import (
     "encoding/json"
     "bytes"
     "io"
+    "log"
 
     "compress/gzip"
 
@@ -66,7 +67,7 @@ func readMemStats(m *storage.MemStorage) {
 
 func Compress(data []byte) ([]byte, error) {
     var b bytes.Buffer
-    w, err := gzip.NewWriterLevel(&b, gzip.BestCompression)
+    w, err := gzip.NewWriterLevel(&b, gzip.BestSpeed)
     if err != nil {
         return nil, fmt.Errorf("failed init compress writer: %v", err)
     }
@@ -87,7 +88,6 @@ func sendReport (serverAddress string, metrics Metrics) error {
         return err
     }
 
-//     fmt.Println(string(data))
     data, err = Compress(data)
     if err != nil {
         return err
@@ -119,7 +119,7 @@ func sendReport (serverAddress string, metrics Metrics) error {
     return nil
 }
 
-func ProcessReport (serverAddress string, m storage.MemStorage) error {
+func ProcessReport (serverAddress string, m *storage.MemStorage) error {
     // metric type variable
 
     var metrics Metrics
@@ -129,6 +129,7 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
     //send request to the server
     for k, v := range m.CounterData{
         metrics = Metrics{ID:k, MType:counterType, Delta:v}
+        log.Println(metrics)
         err := sendReport(serverAddress, metrics)
         if err != nil {
             return err

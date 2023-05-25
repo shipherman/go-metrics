@@ -72,7 +72,7 @@ func (h *Handler) SaveDataToFile() error {
 func (h *Handler) SaveDataToFileOnTimer() error {
     skip := make(chan bool)
     go func(){
-        time.Sleep(time.Second)
+        time.Sleep(10)
         skip <- true
     }()
 
