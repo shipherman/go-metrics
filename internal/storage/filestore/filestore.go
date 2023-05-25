@@ -9,10 +9,11 @@ import (
 
 func cleanFile(filename string) error {
     f, err := os.OpenFile(filename, os.O_WRONLY | os.O_CREATE, 0666)
-    defer f.Close()
     if err != nil {
         return err
     }
+    defer f.Close()
+
 
     err = f.Truncate(0)
     if err != nil {
@@ -29,10 +30,11 @@ func WriteDataToFile(filename string, store storage.MemStorage) error {
     }
 
     f, err := os.OpenFile(filename, os.O_WRONLY | os.O_CREATE, 0666)
-    defer f.Close()
     if err != nil {
         return err
     }
+    defer f.Close()
+
 
     data, err := json.MarshalIndent(store, "", "  ")
     if err != nil {
