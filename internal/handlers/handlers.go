@@ -78,10 +78,10 @@ func (h *Handler) SaveDataToFileOnTimer() error {
 
     select {
         case <-skip:
-            log.Println("Skip saving")
+//             log.Println("Skip saving")
             return nil
         case  <-h.ticker.C:
-            log.Println("Save data to file")
+//             log.Println("Save data to file")
             err := filestore.WriteDataToFile(h.filename, h.Store)
             if err != nil {
                 return err

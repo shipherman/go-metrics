@@ -33,6 +33,13 @@ func TestProcessReport (t *testing.T) {
             wantcode: http.StatusOK,
         },
         {
+            name: "Test Empty metric",
+            store: s.MemStorage{CounterData: map[string]s.Counter{}},
+            // adding new line into format string as http server do
+            wanterr: nil,
+            wantcode: http.StatusBadRequest,
+        },
+        {
             name: "Test Invalid Post request counter metric",
              store: s.MemStorage{
                 CounterData: map[string]s.Counter{
