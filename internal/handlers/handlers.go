@@ -70,22 +70,15 @@ func (h *Handler) SaveDataToFile() error {
 }
 
 func (h *Handler) SaveDataToFileOnTimer() error {
-    skip := make(chan bool)
-    go func(){
-        time.Sleep(10)
-        skip <- true
-    }()
-
     select {
-        case <-skip:
-//             log.Println("Skip saving")
-            return nil
         case  <-h.ticker.C:
 //             log.Println("Save data to file")
             err := filestore.WriteDataToFile(h.filename, h.Store)
             if err != nil {
                 return err
             }
+        default:
+            return nil
     }
     return nil
 }
