@@ -81,6 +81,44 @@ func Compress(data []byte) ([]byte, error) {
     return b.Bytes(), nil
 }
 
+func sendReport (serverAddress string, metrics Metrics) error {
+    data, err := json.Marshal(metrics)
+    if err != nil {
+        return err
+    }
+
+//     fmt.Println(string(data))
+    data, err = Compress(data)
+    if err != nil {
+        return err
+    }
+
+    request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
+    if err != nil {
+        return err
+    }
+    request.Header.Set("Content-Type", contentType)
+    request.Header.Set("Content-Encoding", compression)
+    request.Header.Set("Accept-Encoding", compression)
+
+    client := &http.Client{}
+    resp, err := client.Do(request)
+
+    if err != nil {
+        return err
+    }
+
+    if resp.StatusCode != http.StatusOK {
+        b, _ := io.ReadAll(resp.Body)
+        return fmt.Errorf("%s: %s; %s",
+                        "Can't send report to the server",
+                        resp.Status,
+                        b)
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
 func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
 
@@ -89,53 +127,22 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
     serverAddress = strings.Join([]string{"http:/",serverAddress,"update/"}, "/")
 
     //send request to the server
-    for k, v := range m.Data{
-        switch v := v.(type){
-            case storage.Gauge:
-                metrics = Metrics{ID:k, MType:gaugeType, Value:v}
-            case storage.Counter:
-                metrics = Metrics{ID:k, MType:counterType, Delta:v}
-            default:
-                return fmt.Errorf("uknown type of metric")
-        }
-
-        data, err := json.Marshal(metrics)
+    for k, v := range m.CounterData{
+        metrics = Metrics{ID:k, MType:counterType, Delta:v}
+        err := sendReport(serverAddress, metrics)
         if err != nil {
             return err
         }
-
-//         fmt.Println(string(data))
-        data, err = Compress(data)
-        if err != nil {
-            return err
-        }
-
-        request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
-        if err != nil {
-            return err
-        }
-        request.Header.Set("Content-Type", contentType)
-        request.Header.Set("Content-Encoding", compression)
-        request.Header.Set("Accept-Encoding", compression)
-
-        client := &http.Client{}
-        resp, err := client.Do(request)
-
-        if err != nil {
-            return err
-        }
-
-        if resp.StatusCode != http.StatusOK {
-            b, _ := io.ReadAll(resp.Body)
-            return fmt.Errorf("%s: %s; %s",
-                            "Can't send report to the server",
-                            resp.Status,
-                            b)
-        }
-
-        defer resp.Body.Close()
-
     }
+
+    for k, v := range m.GaugeData{
+        metrics = Metrics{ID:k, MType:gaugeType, Value:v}
+        err := sendReport(serverAddress, metrics)
+        if err != nil {
+            return err
+        }
+    }
+
     return nil
 }
 

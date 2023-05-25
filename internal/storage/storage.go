@@ -8,36 +8,45 @@ type Counter int64
 type Gauge float64
 
 type MemStorage struct {
-    Data map[string]interface{}
+    CounterData map[string]Counter
+    GaugeData map[string]Gauge
 }
 
 
 func New() (MemStorage) {
     return MemStorage{
-        Data: map[string]interface{}{},
+        CounterData: map[string]Counter{},
+        GaugeData: map[string]Gauge{},
     }
 }
 
 func (m *MemStorage) Get(metric string) (interface{}, error) {
-    if v, ok := m.Data[metric]; ok {
+    if v, ok := m.CounterData[metric]; ok {
+        return v, nil
+    }
+    if v, ok := m.GaugeData[metric]; ok {
         return v, nil
     }
     return "No such metric in memstorage", fmt.Errorf("metric not found")
 
 }
 
-func (m *MemStorage) GetAll() map[string]interface{} {
-    return m.Data
+func (m *MemStorage) GetAllCounters() map[string]Counter {
+    return m.CounterData
 }
 
-func (m *MemStorage) UpdateGauge(metric string, value interface{}) {
-    m.Data[metric] = value.(Gauge)
+func (m *MemStorage) GetAllGauge() map[string]Gauge {
+    return m.GaugeData
 }
 
-func (m *MemStorage) UpdateCounter(metric string, value interface{}) {
-    if m.Data[metric] == nil {
-        m.Data[metric] = value.(Counter)
-        return
-    }
-    m.Data[metric] = m.Data[metric].(Counter) + value.(Counter)
+func (m *MemStorage) UpdateGauge(metric string, value Gauge) {
+    m.GaugeData[metric] = value
+}
+
+func (m *MemStorage) UpdateCounter(metric string, value Counter) {
+//     if m.CounterData[metric] == nil {
+//         m.CounterData[metric] = value
+//         return
+//     }
+    m.CounterData[metric] = m.CounterData[metric] + value
 }
