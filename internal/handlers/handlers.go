@@ -43,11 +43,10 @@ func NewHandler(filename string, interval int, restore bool) (Handler, error) {
     // Read saved metrics from file
     if restore {
         f, err := os.OpenFile(h.filename, os.O_RDONLY | os.O_CREATE, 0666)
-        defer f.Close()
-
         if err != nil {
             return h, err
         }
+        defer f.Close()
 
         data, err := io.ReadAll(f)
         if err != nil {
