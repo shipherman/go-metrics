@@ -3,8 +3,8 @@ package routers
 import (
     "github.com/go-chi/chi/v5"
     "github.com/shipherman/go-metrics/internal/handlers"
-    "github.com/shipherman/go-metrics/internal/logger"
-    "github.com/shipherman/go-metrics/internal/gzip"
+    "github.com/shipherman/go-metrics/internal/middleware/logger"
+    "github.com/shipherman/go-metrics/internal/middleware/gzip"
     "github.com/shipherman/go-metrics/internal/options"
 
 )
