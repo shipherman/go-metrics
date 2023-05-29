@@ -1,9 +1,11 @@
 package logger
 
 import (
+    "os"
     "time"
     "net/http"
     "go.uber.org/zap"
+    "go.uber.org/zap/zapcore"
 )
 
 
@@ -19,6 +21,35 @@ type (
         responseData *responseData
     }
 )
+
+const logfile string = "./server.log"
+
+var (
+    DebugLogger *zap.Logger
+)
+
+
+func init() {
+    highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+        return lvl >= zapcore.ErrorLevel
+    })
+    lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+        return lvl < zapcore.ErrorLevel
+    })
+
+    consoleDebugging := zapcore.Lock(os.Stdout)
+    consoleErrors := zapcore.Lock(os.Stderr)
+
+    consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
+
+    core := zapcore.NewTee(
+        zapcore.NewCore(consoleEncoder, consoleErrors, highPriority),
+        zapcore.NewCore(consoleEncoder, consoleDebugging, lowPriority),
+    )
+    DebugLogger = zap.New(core)
+
+}
+
 
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
     size, err := r.ResponseWriter.Write(b)
@@ -37,11 +68,7 @@ func LogHandler(next http.Handler) http.Handler {
 
         start := time.Now()
 
-        logger, err := zap.NewDevelopment()
-        if err != nil {
-            panic(err)
-        }
-        sugar := logger.Sugar()
+        sugar := DebugLogger.Sugar()
 
         responseData := &responseData {
             status: 0,
