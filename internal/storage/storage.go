@@ -44,9 +44,5 @@ func (m *MemStorage) UpdateGauge(metric string, value Gauge) {
 }
 
 func (m *MemStorage) UpdateCounter(metric string, value Counter) {
-//     if m.CounterData[metric] == nil {
-//         m.CounterData[metric] = value
-//         return
-//     }
     m.CounterData[metric] = m.CounterData[metric] + value
 }
