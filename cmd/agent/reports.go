@@ -1,4 +1,4 @@
-package main
+package agent
 
 import (
     "fmt"
@@ -16,12 +16,11 @@ import (
     "github.com/shipherman/go-metrics/internal/storage"
 )
 
-
 type Metrics struct {
     ID    string   `json:"id"`              // имя метрики
     MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-    Delta storage.Counter   `json:"delta"` // значение метрики в случае передачи counter
-    Value storage.Gauge `json:"value"` // значение метрики в случае передачи gauge
+    Delta storage.Counter   `json:"delta"`  // значение метрики в случае передачи counter
+    Value storage.Gauge `json:"value"`      // значение метрики в случае передачи gauge
 }
 
 const contentType string = "application/json"
@@ -31,6 +30,7 @@ const counterType string = "counter"
 const gaugeType string = "gauge"
 
 
+// Renew metrics through runtime package
 func readMemStats(m *storage.MemStorage) {
     var stat runtime.MemStats
     runtime.ReadMemStats(&stat)
@@ -65,6 +65,9 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateCounter("PollCount", storage.Counter(1))
 }
 
+
+// Compress function profides fast compression
+// for requests to send to the server
 func Compress(data []byte) ([]byte, error) {
     var b bytes.Buffer
     w, err := gzip.NewWriterLevel(&b, gzip.BestSpeed)
@@ -82,6 +85,7 @@ func Compress(data []byte) ([]byte, error) {
     return b.Bytes(), nil
 }
 
+// Send atomic metric report to the server
 func sendReport (serverAddress string, metrics Metrics) error {
     data, err := json.Marshal(metrics)
     if err != nil {
@@ -119,6 +123,7 @@ func sendReport (serverAddress string, metrics Metrics) error {
     return nil
 }
 
+// Process all the metrics and send them to the server one by one
 func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
 

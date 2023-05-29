@@ -34,6 +34,7 @@ const counterType = "counter"
 const gaugeType = "gauge"
 
 
+// Create new handler and previous reports info from file it needed
 func NewHandler(filename string, interval int, restore bool) (Handler, error) {
     var h Handler
     h.Store = storage.New()
@@ -61,6 +62,7 @@ func NewHandler(filename string, interval int, restore bool) (Handler, error) {
     return h, nil
 }
 
+// Saving actual data to file
 func (h *Handler) SaveDataToFile() error {
     err := filestore.WriteDataToFile(h.filename, h.Store)
     if err != nil {
@@ -69,6 +71,7 @@ func (h *Handler) SaveDataToFile() error {
     return nil
 }
 
+// Saving with timer
 func (h *Handler) SaveDataToFileOnTimer() error {
     select {
         case  <-h.ticker.C:
@@ -83,6 +86,8 @@ func (h *Handler) SaveDataToFileOnTimer() error {
     return nil
 }
 
+// Return list with all the metrics
+// ToDo: Implement sortable document
 func (h *Handler) HandleMain(w http.ResponseWriter, r *http.Request) {
     //write static html page with all the items to the response; unsorted
     body := `
@@ -118,6 +123,7 @@ func (h *Handler) HandleMain(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte(body))
 }
 
+// Handle URI request to return value
 func (h *Handler) HandleValue(w http.ResponseWriter, r *http.Request) {
     metric := chi.URLParam(r, "metric")
     v, err := h.Store.Get(metric)
@@ -127,6 +133,7 @@ func (h *Handler) HandleValue(w http.ResponseWriter, r *http.Request) {
     fmt.Fprint(w, v)
 }
 
+// Handle JSON request to return value
 func (h *Handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
     var m Metrics
     var buf bytes.Buffer
@@ -142,8 +149,6 @@ func (h *Handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
-
-//     fmt.Println(m.ID, m.MType, *m.Delta, *m.Value)
 
     switch m.MType {
         case counterType:
@@ -177,7 +182,7 @@ func (h *Handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
     w.Write(resp)
 }
 
-//Update
+// Handle URI request to update metric value
 func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
     // get context params
     metricType := chi.URLParam(r, "type")
@@ -204,6 +209,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
     h.SaveDataToFileOnTimer()
 }
 
+// Handle JSON request to update metric value
 func (h *Handler) HandleJSONUpdate(w http.ResponseWriter, r *http.Request) {
     var m Metrics
     var buf bytes.Buffer
@@ -214,15 +220,11 @@ func (h *Handler) HandleJSONUpdate(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-//     fmt.Println("inside HandleJSONUpdate", string(buf.Bytes()))
-
     err = json.Unmarshal(buf.Bytes(), &m)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
-
-//     fmt.Println(m.ID, m.MType, *m.Delta, *m.Value)
 
     switch m.MType {
         case counterType:

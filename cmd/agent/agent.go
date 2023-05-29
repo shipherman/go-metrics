@@ -1,4 +1,5 @@
-package main
+// Agent
+package agent
 
 import (
     "log"
