@@ -1,5 +1,5 @@
 // Agent
-package agent
+package main
 
 import (
     "log"

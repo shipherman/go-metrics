@@ -1,4 +1,4 @@
-package agent
+package main
 
 import (
     "fmt"
@@ -68,7 +68,7 @@ func readMemStats(m *storage.MemStorage) {
 
 // Compress function profides fast compression
 // for requests to send to the server
-func Compress(data []byte) ([]byte, error) {
+func compress(data []byte) ([]byte, error) {
     var b bytes.Buffer
     w, err := gzip.NewWriterLevel(&b, gzip.BestSpeed)
     if err != nil {
@@ -92,7 +92,7 @@ func sendReport (serverAddress string, metrics Metrics) error {
         return err
     }
 
-    data, err = Compress(data)
+    data, err = compress(data)
     if err != nil {
         return err
     }

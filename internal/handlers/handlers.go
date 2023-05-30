@@ -14,7 +14,6 @@ import (
     "github.com/go-chi/chi/v5"
 
     "github.com/shipherman/go-metrics/internal/storage"
-    "github.com/shipherman/go-metrics/internal/storage/filestore"
 )
 
 type Metrics struct {
@@ -64,7 +63,7 @@ func NewHandler(filename string, interval int, restore bool) (Handler, error) {
 
 // Saving actual data to file
 func (h *Handler) SaveDataToFile() error {
-    err := filestore.WriteDataToFile(h.filename, h.Store)
+    err := storage.WriteDataToFile(h.filename, h.Store)
     if err != nil {
         return err
     }
@@ -76,7 +75,7 @@ func (h *Handler) SaveDataToFileOnTimer() error {
     select {
         case  <-h.ticker.C:
 //             log.Println("Save data to file")
-            err := filestore.WriteDataToFile(h.filename, h.Store)
+            err := storage.WriteDataToFile(h.filename, h.Store)
             if err != nil {
                 return err
             }
