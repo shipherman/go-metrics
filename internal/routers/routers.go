@@ -11,7 +11,7 @@ import (
 
 
 func InitRouter(cfg options.Options) (chi.Router, handlers.Handler, error) {
-    h, err := handlers.NewHandler(cfg.Filename, cfg.Interval, cfg.Restore)
+    h, err := handlers.NewHandler(cfg.Filename, cfg.Restore)
     if err != nil {
         return nil, h, err
     }

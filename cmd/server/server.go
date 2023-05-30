@@ -7,9 +7,11 @@ import (
     "net/http"
     "log"
     "context"
+    "time"
 
     "github.com/shipherman/go-metrics/internal/routers"
     "github.com/shipherman/go-metrics/internal/options"
+    "github.com/shipherman/go-metrics/internal/storage"
 )
 
 
@@ -29,6 +31,13 @@ func main() {
         panic(err)
     }
 
+    go func() {
+        for {
+            time.Sleep(time.Second * time.Duration(cfg.Interval))
+            storage.WriteDataToFile(cfg.Filename, hStore.Store)
+        }
+    }()
+
     server := http.Server{
         Addr: cfg.Address,
         Handler: router,
@@ -41,7 +50,7 @@ func main() {
         <-sigint
         log.Println("Shutting down server")
 
-        if err := hStore.SaveDataToFile(); err != nil {
+        if err := storage.WriteDataToFile(cfg.Filename, hStore.Store); err != nil {
             log.Printf("Error during saving data to file: %v", err)
         }
 

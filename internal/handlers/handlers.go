@@ -8,7 +8,6 @@ import (
     "bytes"
     "os"
     "io"
-    "time"
     "log"
 
     "github.com/go-chi/chi/v5"
@@ -25,8 +24,6 @@ type Metrics struct {
 
 type Handler struct {
     Store storage.MemStorage
-    filename string
-    ticker *time.Ticker
 }
 
 const counterType = "counter"
@@ -34,15 +31,13 @@ const gaugeType = "gauge"
 
 
 // Create new handler and previous reports info from file it needed
-func NewHandler(filename string, interval int, restore bool) (Handler, error) {
+func NewHandler(filename string, restore bool) (Handler, error) {
     var h Handler
     h.Store = storage.New()
-    h.filename = filename
-    h.ticker = time.NewTicker(time.Duration(interval) * time.Second)
 
     // Read saved metrics from file
     if restore {
-        f, err := os.OpenFile(h.filename, os.O_RDONLY | os.O_CREATE, 0666)
+        f, err := os.OpenFile(filename, os.O_RDONLY | os.O_CREATE, 0666)
         if err != nil {
             return h, err
         }
@@ -59,30 +54,6 @@ func NewHandler(filename string, interval int, restore bool) (Handler, error) {
         }
     }
     return h, nil
-}
-
-// Saving actual data to file
-func (h *Handler) SaveDataToFile() error {
-    err := storage.WriteDataToFile(h.filename, h.Store)
-    if err != nil {
-        return err
-    }
-    return nil
-}
-
-// Saving with timer
-func (h *Handler) SaveDataToFileOnTimer() error {
-    select {
-        case  <-h.ticker.C:
-//             log.Println("Save data to file")
-            err := storage.WriteDataToFile(h.filename, h.Store)
-            if err != nil {
-                return err
-            }
-        default:
-            return nil
-    }
-    return nil
 }
 
 // Return list with all the metrics
@@ -205,7 +176,6 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }
-    h.SaveDataToFileOnTimer()
 }
 
 // Handle JSON request to update metric value
@@ -243,5 +213,4 @@ func (h *Handler) HandleJSONUpdate(w http.ResponseWriter, r *http.Request) {
         default:
             http.Error(w, "Incorrect metric type", http.StatusBadRequest)
     }
-    h.SaveDataToFileOnTimer()
 }
