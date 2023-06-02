@@ -7,7 +7,6 @@ import (
     "encoding/json"
     "bytes"
     "os"
-    "io"
     "log"
 
     "github.com/go-chi/chi/v5"
@@ -43,12 +42,8 @@ func NewHandler(filename string, restore bool) (Handler, error) {
         }
         defer f.Close()
 
-        data, err := io.ReadAll(f)
-        if err != nil {
-            return h, err
-        }
-
-        err = json.Unmarshal(data, &h.Store)
+        decoder := json.NewDecoder(f)
+        err = decoder.Decode(&h.Store)
         if err != nil {
             log.Println("Could not restore data", err)
         }
@@ -106,15 +101,9 @@ func (h *Handler) HandleValue(w http.ResponseWriter, r *http.Request) {
 // Handle JSON request to return value
 func (h *Handler) HandleJSONValue(w http.ResponseWriter, r *http.Request) {
     var m Metrics
-    var buf bytes.Buffer
 
-    _, err := buf.ReadFrom(r.Body)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
-
-    err = json.Unmarshal(buf.Bytes(), &m)
+    decoder := json.NewDecoder(r.Body)
+    err := decoder.Decode(&m)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
