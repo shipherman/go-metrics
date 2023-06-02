@@ -70,10 +70,7 @@ func LogHandler(next http.Handler) http.Handler {
 
         sugar := DebugLogger.Sugar()
 
-        responseData := &responseData {
-            status: 0,
-            size: 0,
-        }
+        responseData := &responseData {}
         lw := loggingResponseWriter {
             ResponseWriter: w,
             responseData: responseData,
