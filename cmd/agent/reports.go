@@ -2,20 +2,35 @@ package main
 
 import (
     "fmt"
-    "io"
     "runtime"
     "strings"
     "net/http"
     "math/rand"
+    "encoding/json"
+    "bytes"
+    "io"
+    "log"
+
+    "compress/gzip"
 
     "github.com/shipherman/go-metrics/internal/storage"
 )
 
-const contentType string = "text/plain"
+type Metrics struct {
+    ID    string   `json:"id"`              // имя метрики
+    MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+    Delta storage.Counter   `json:"delta"`  // значение метрики в случае передачи counter
+    Value storage.Gauge `json:"value"`      // значение метрики в случае передачи gauge
+}
+
+const contentType string = "application/json"
+const compression string = "gzip"
+
 const counterType string = "counter"
 const gaugeType string = "gauge"
 
 
+// Renew metrics through runtime package
 func readMemStats(m *storage.MemStorage) {
     var stat runtime.MemStats
     runtime.ReadMemStats(&stat)
@@ -50,50 +65,90 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateCounter("PollCount", storage.Counter(1))
 }
 
-func sendReport (req string) error {
-    reader := new(io.Reader)
-    resp, err := http.Post(req, contentType, *reader)
+
+// Compress function profides fast compression
+// for requests to send to the server
+func compress(data []byte) ([]byte, error) {
+    var b bytes.Buffer
+    w, err := gzip.NewWriterLevel(&b, gzip.BestSpeed)
+    if err != nil {
+        return nil, fmt.Errorf("failed init compress writer: %v", err)
+    }
+    _, err = w.Write(data)
+    if err != nil {
+        return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+    }
+    err = w.Close()
+    if err != nil {
+        return nil, fmt.Errorf("failed compress data: %v", err)
+    }
+    return b.Bytes(), nil
+}
+
+// Send atomic metric report to the server
+func sendReport (serverAddress string, metrics Metrics) error {
+    data, err := json.Marshal(metrics)
     if err != nil {
         return err
     }
-    if resp.StatusCode != http.StatusOK {
-        line, err := io.ReadAll(resp.Body)
-        if err != nil {
-            return err
-        }
-        return fmt.Errorf("%s: %s; %s",
-                          "Can't send report to the server",
-                          resp.Status,
-                          line)
+
+    data, err = compress(data)
+    if err != nil {
+        return err
     }
-    resp.Body.Close()
+
+    request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
+    if err != nil {
+        return err
+    }
+    request.Header.Set("Content-Type", contentType)
+    request.Header.Set("Content-Encoding", compression)
+    request.Header.Set("Accept-Encoding", compression)
+
+    client := &http.Client{}
+    resp, err := client.Do(request)
+
+    if err != nil {
+        return err
+    }
+
+    if resp.StatusCode != http.StatusOK {
+        b, _ := io.ReadAll(resp.Body)
+        return fmt.Errorf("%s: %s; %s",
+                        "Can't send report to the server",
+                        resp.Status,
+                        b)
+    }
+    defer resp.Body.Close()
     return nil
 }
 
+// Process all the metrics and send them to the server one by one
 func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
-    var mtype string
+
+    var metrics Metrics
+
+    serverAddress = strings.Join([]string{"http:/",serverAddress,"update/"}, "/")
 
     //send request to the server
-    for k, v := range m.Data{
-        switch v.(type){
-            case storage.Gauge:
-                mtype = gaugeType //replace with const string
-            case storage.Counter:
-                mtype = contentType
-            default:
-                return fmt.Errorf("uknown type of metric")
-        }
-        req := strings.Join([]string{"http:/",
-                         serverAddress,
-                         "update",
-                         mtype,
-                         fmt.Sprintf("%v/%v",k,v)}, "/")
-        err := sendReport(req)
+    for k, v := range m.CounterData{
+        metrics = Metrics{ID:k, MType:counterType, Delta:v}
+        log.Println(metrics)
+        err := sendReport(serverAddress, metrics)
         if err != nil {
             return err
         }
     }
+
+    for k, v := range m.GaugeData{
+        metrics = Metrics{ID:k, MType:gaugeType, Value:v}
+        err := sendReport(serverAddress, metrics)
+        if err != nil {
+            return err
+        }
+    }
+
     return nil
 }
 
