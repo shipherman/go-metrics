@@ -24,21 +24,10 @@ func Connect(connstring string) (*pgx.Conn, error) {
         return conn, err
     }
 
-
     conn, err = pgx.ConnectConfig(ctx, connConfig)
     if err != nil {
         return conn, err
     }
 
-//     defer conn.Close(ctx)
-
-    var version string
-
-    err = conn.QueryRow(ctx, "select version()").Scan(&version)
-    if err != nil {
-        return conn, err
-    }
-
-    fmt.Println(version)
     return conn, nil
 }
