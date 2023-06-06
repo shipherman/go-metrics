@@ -21,6 +21,7 @@ func InitRouter(cfg options.Options) (chi.Router, handlers.Handler, error) {
     router.Use(logger.LogHandler)
     router.Use(gzip.GzipHandle)
     router.Get("/", h.HandleMain)
+    router.Get("/ping", h.HandlePing)
     router.Post("/update/{type}/{metric}/{value}", h.HandleUpdate)
     router.Get("/value/gauge/{metric}", h.HandleValue)
     router.Get("/value/counter/{metric}", h.HandleValue)

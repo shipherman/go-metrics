@@ -1,6 +1,7 @@
 package options
 
 import (
+    "fmt"
     "flag"
     "github.com/caarlos0/env"
 
@@ -11,8 +12,17 @@ type Options struct {
     Interval int    `env:"STORE_INTERVAL"`
     Filename string `env:"FILE_STORAGE_PATH"`
     Restore bool    `env:"RESTORE"`
+    DBDSN string    `env:"DATABASE_DSN"`
 }
 
+// DB connection string parameters
+const (
+    host     = "127.0.0.1"
+    port     = 5432
+    user     = "postgres"
+    password = "pass"
+    dbname   = "postgres"
+)
 
 func ParseOptions() (Options, error) {
     var cfg Options
@@ -29,6 +39,11 @@ func ParseOptions() (Options, error) {
     flag.BoolVar(&cfg.Restore,
                  "r", true,
                  "Restore metrics value from file")
+    flag.StringVar(&cfg.DBDSN,
+                   "d", fmt.Sprintf(
+                        "host=%s port=%d dbname=%s user=%s password=%s target_session_attrs=read-write",
+                        host, port, dbname, user, password),
+                   "Connection string in Postgres format")
     flag.Parse()
 
     // get env vars

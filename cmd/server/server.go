@@ -12,6 +12,9 @@ import (
     "github.com/shipherman/go-metrics/internal/routers"
     "github.com/shipherman/go-metrics/internal/options"
     "github.com/shipherman/go-metrics/internal/storage"
+    "github.com/shipherman/go-metrics/internal/handlers"
+    "github.com/shipherman/go-metrics/internal/db"
+
 )
 
 
@@ -21,6 +24,14 @@ func main() {
     if err != nil {
         panic(err)
     }
+
+    conn, err := db.Connect(cfg.DBDSN)
+    if err != nil {
+        log.Println("Could not connect to DB. ERROR: ", err)
+    }
+    defer conn.Close(context.Background())
+
+    handlers.SetDB(conn)
 
     log.Println(cfg)
     log.Println("Starting server...")
@@ -61,8 +72,6 @@ func main() {
     }()
 
     //run server
-
-
     log.Fatal(server.ListenAndServe())
 
     <-idleConnectionsClosed

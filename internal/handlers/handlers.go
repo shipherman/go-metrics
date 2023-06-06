@@ -6,6 +6,7 @@ import (
     "log"
 
     "github.com/shipherman/go-metrics/internal/storage"
+    "github.com/jackc/pgx/v5"
 )
 
 type Metrics struct {
@@ -22,6 +23,11 @@ type Handler struct {
 const counterType = "counter"
 const gaugeType = "gauge"
 
+var dbconn *pgx.Conn
+
+func SetDB(db *pgx.Conn) {
+	dbconn = db
+}
 
 // Create new handler and previous reports info from file it needed
 func NewHandler(filename string, restore bool) (Handler, error) {
