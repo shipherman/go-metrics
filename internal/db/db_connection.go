@@ -7,14 +7,6 @@ import (
     "github.com/jackc/pgx/v5"
 )
 
-const (
-    host     = "127.0.0.1"
-    port     = 5432
-    user     = "postgres"
-    password = "pass"
-    dbname   = "postgres"
-)
-
 func Connect(connstring string) (*pgx.Conn, error) {
     var conn *pgx.Conn
 
