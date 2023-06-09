@@ -1,0 +1,49 @@
+package handlers
+
+import (
+    "encoding/json"
+    "bytes"
+    "net/http"
+
+    "github.com/shipherman/go-metrics/internal/storage"
+
+)
+
+
+// Handle URI request to update metric value
+func (h *Handler) HandleBatchUpdate(w http.ResponseWriter, r *http.Request) {
+    var m []Metrics
+    var buf bytes.Buffer
+
+    _, err := buf.ReadFrom(r.Body)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    err = json.Unmarshal(buf.Bytes(), &m)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+    for _, v := range m {
+        switch v.MType {
+            case counterType:
+                if v.Delta == nil {
+                    http.Error(w, "metric value should not be empty", http.StatusBadRequest)
+                    return
+                }
+                h.Store.UpdateCounter(v.ID, storage.Counter(*v.Delta))
+                w.WriteHeader(http.StatusOK)
+            case gaugeType:
+                if v.Value == nil {
+                    http.Error(w, "metric value should not be empty", http.StatusBadRequest)
+                    return
+                }
+                h.Store.UpdateGauge(v.ID, storage.Gauge(*v.Value))
+                w.WriteHeader(http.StatusOK)
+            default:
+                http.Error(w, "Incorrect metric type", http.StatusBadRequest)
+        }
+    }
+}
