@@ -32,16 +32,16 @@ func (h *Handler) HandleBatchUpdate(w http.ResponseWriter, r *http.Request) {
                     return
                 }
                 h.Store.UpdateCounter(v.ID, storage.Counter(*v.Delta))
-                w.WriteHeader(http.StatusOK)
             case gaugeType:
                 if v.Value == nil {
                     http.Error(w, "metric value should not be empty", http.StatusBadRequest)
                     return
                 }
                 h.Store.UpdateGauge(v.ID, storage.Gauge(*v.Value))
-                w.WriteHeader(http.StatusOK)
             default:
                 http.Error(w, "Incorrect metric type", http.StatusBadRequest)
         }
     }
+    w.WriteHeader(http.StatusOK)
+
 }
