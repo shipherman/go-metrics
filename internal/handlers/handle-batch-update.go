@@ -6,11 +6,9 @@ import (
     "net/http"
 
     "github.com/shipherman/go-metrics/internal/storage"
-
 )
 
 
-// Handle URI request to update metric value
 func (h *Handler) HandleBatchUpdate(w http.ResponseWriter, r *http.Request) {
     var m []Metrics
     var buf bytes.Buffer

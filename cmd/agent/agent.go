@@ -1,4 +1,3 @@
-// Agent
 package main
 
 import (
@@ -31,7 +30,7 @@ func main() {
         case <-pollTicker.C:
             readMemStats(&m)
         case <-reportTicker.C:
-            err := ProcessReport(cfg.ServerAddress, m)
+            err := ProcessBatch(cfg.ServerAddress, m)
             if err != nil {
                 log.Println(err)
             }

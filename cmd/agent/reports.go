@@ -123,6 +123,8 @@ func sendReport (serverAddress string, metrics Metrics) error {
     return nil
 }
 
+
+
 // Process all the metrics and send them to the server one by one
 func ProcessReport (serverAddress string, m storage.MemStorage) error {
     // metric type variable
@@ -148,7 +150,5 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
             return err
         }
     }
-
     return nil
 }
-
