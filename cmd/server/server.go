@@ -25,35 +25,57 @@ func main() {
         panic(err)
     }
 
-    conn, err := db.Connect(cfg.DBDSN)
-    if err != nil {
-        log.Println("Could not connect to DB. ERROR: ", err)
-    }
-    defer conn.Close(context.Background())
-
-    handlers.SetDB(conn)
-
-    log.Println(cfg)
-    log.Println("Starting server...")
-
-
-    router, hStore, err := routers.InitRouter(cfg)
+    h, err := handlers.NewHandler(cfg.Filename, cfg.Restore)
     if err != nil {
         panic(err)
     }
 
-    go func() {
+    router, err := routers.InitRouter(cfg, h)
+    if err != nil {
+        panic(err)
+    }
+
+    // create an interface to implement writing to either JSON file or DB
+    if cfg.DBDSN != "" {
+        database, err := db.Connect(cfg.DBDSN)
+        if err != nil {
+            log.Println("Could not connect to DB. ERROR: ", err)
+        }
+        defer database.Conn.Close(context.Background())
+
+        err = database.CreateTables()
+        if err != nil {
+            log.Println("Could not create table: ", err)
+        }
+
+        handlers.SetDB(database.Conn)
+
+        go func() {
+        for {
+//             time.Sleep(time.Second * time.Duration(cfg.Interval))
+            _ = database.WriteData(h.Store)
+//             _ = database.SelectAll()
+            }
+        }()
+
+    } else if cfg.Filename != "" {
+        go func() {
         for {
             time.Sleep(time.Second * time.Duration(cfg.Interval))
-            storage.WriteDataToFile(cfg.Filename, hStore.Store)
-        }
-    }()
+            storage.WriteDataToFile(cfg.Filename, h.Store)
+            }
+        }()
+    }
+
+    log.Println(cfg)
+    log.Println("Starting server...")
 
     server := http.Server{
         Addr: cfg.Address,
         Handler: router,
     }
 
+    // graceful shutdown
     idleConnectionsClosed := make(chan struct{})
     go func() {
         sigint := make(chan os.Signal, 1)
@@ -61,9 +83,9 @@ func main() {
         <-sigint
         log.Println("Shutting down server")
 
-        if err := storage.WriteDataToFile(cfg.Filename, hStore.Store); err != nil {
-            log.Printf("Error during saving data to file: %v", err)
-        }
+//         if err := storage.WriteDataToFile(cfg.Filename, h.Store); err != nil {
+//             log.Printf("Error during saving data to file: %v", err)
+//         }
 
         if err := server.Shutdown(context.Background()); err != nil {
             log.Printf("HTTP Server Shutdown Error: %v", err)

@@ -2,24 +2,28 @@ package db
 
 import (
     "context"
-    "fmt"
 
     "github.com/jackc/pgx/v5"
 )
 
-func Connect(connstring string) (*pgx.Conn, error) {
-    var conn *pgx.Conn
+type Database struct{
+    Conn *pgx.Conn
+}
+
+
+func Connect(connstring string) (Database, error) {
+    var db Database
 
     ctx := context.Background()
     connConfig, err := pgx.ParseConfig(connstring)
     if err != nil {
-        return conn, err
+        return db, err
     }
 
-    conn, err = pgx.ConnectConfig(ctx, connConfig)
+    db.Conn, err = pgx.ConnectConfig(ctx, connConfig)
     if err != nil {
-        return conn, err
+        return db, err
     }
 
-    return conn, nil
+    return db, nil
 }

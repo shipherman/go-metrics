@@ -10,12 +10,7 @@ import (
 )
 
 
-func InitRouter(cfg options.Options) (chi.Router, handlers.Handler, error) {
-    h, err := handlers.NewHandler(cfg.Filename, cfg.Restore)
-    if err != nil {
-        return nil, h, err
-    }
-
+func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
     // Routers
     router := chi.NewRouter()
     router.Use(logger.LogHandler)
@@ -28,5 +23,5 @@ func InitRouter(cfg options.Options) (chi.Router, handlers.Handler, error) {
     router.Post("/value/",h.HandleJSONValue)
     router.Post("/update/",h.HandleJSONUpdate)
 
-    return router, h, nil
+    return router, nil
 }
