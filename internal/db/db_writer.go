@@ -8,7 +8,7 @@ import (
 )
 
 
-func (db *Database) WriteData(s storage.MemStorage) error {
+func (db *Database) Write(s storage.MemStorage) error {
     for k, v := range s.CounterData {
         _, err := db.Conn.Exec(context.Background(),
                      `INSERT INTO counter_metrics (name, value, timestamp) VALUES ($1, $2, $3)`,
