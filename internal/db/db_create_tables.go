@@ -1,13 +1,10 @@
 package db
 
 import (
-    "fmt"
     "context"
-
-//     "github.com/jackc/pgx/v5"
 )
 
-func (db *Database) CreateTables() error {
+func (db *Database) createTables() error {
     _, err := db.Conn.Exec(context.Background(),  `CREATE TABLE gauge_metrics(
         id serial PRIMARY KEY,
         name text,
