@@ -25,5 +25,10 @@ func Connect(connstring string) (Database, error) {
         return db, err
     }
 
+    err = db.createTables()
+    if err != nil {
+        return db, err
+    }
+
     return db, nil
 }
