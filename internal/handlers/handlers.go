@@ -1,10 +1,6 @@
 package handlers
 
 import (
-    "encoding/json"
-    "os"
-    "log"
-
     "github.com/shipherman/go-metrics/internal/storage"
     "github.com/jackc/pgx/v5"
 )
@@ -25,30 +21,15 @@ const gaugeType = "gauge"
 
 var dbconn *pgx.Conn
 
-func SetDB(db *pgx.Conn) {
-	dbconn = db
+func SetDB(conn *pgx.Conn) {
+    dbconn = conn
 }
 
 // Create new handler and previous reports info from file it needed
-func NewHandler(filename string, restore bool) (Handler, error) {
+func NewHandler() (Handler) {
     var h Handler
     h.Store = storage.New()
 
-    // Read saved metrics from file
-    if restore {
-        f, err := os.OpenFile(filename, os.O_RDONLY | os.O_CREATE, 0666)
-        if err != nil {
-            return h, err
-        }
-        defer f.Close()
-
-        decoder := json.NewDecoder(f)
-        err = decoder.Decode(&h.Store)
-        if err != nil {
-            log.Println("Could not restore data", err)
-        }
-    }
-    return h, nil
+    return h
 }
-
 
