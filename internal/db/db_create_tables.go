@@ -26,21 +26,5 @@ func (db *Database) CreateTables() error {
         return err
     }
 
-    query := `
-        SELECT
-            table_schema || '.' || table_name
-        FROM information_schema.tables
-        WHERE
-            table_schema NOT IN ('pg_catalog', 'information_schema')
-    `
-    rows, err := db.Conn.Query(context.Background(), query)
-    if err != nil {
-        return err
-    }
-
-    for rows.Next() {
-        fmt.Println(rows.Values())
-    }
-
     return nil
 }
