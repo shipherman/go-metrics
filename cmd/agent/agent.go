@@ -36,22 +36,22 @@ func Retry(sender Sender, retries int, delay time.Duration) Sender {
 }
 
 func main() {
-    //parse cli options
+    // Parse cli options
     cfg, err := parseOptions()
     if err != nil {
         panic(err)
     }
 
-    // initiate tickers
+    // Initiate tickers
     pollTicker := time.NewTicker(time.Second * time.Duration(cfg.PollInterval))
 	defer pollTicker.Stop()
     reportTicker := time.NewTicker(time.Second * time.Duration(cfg.ReportInterval))
 	defer reportTicker.Stop()
 
-    //initiate new storage
+    // Initiate new storage
     m := storage.New()
 
-    //collect data from MemStats and send to the server
+    // Collect data from MemStats and send to the server
     for {
         select {
         case <-pollTicker.C:
