@@ -3,7 +3,7 @@ package routers
 import (
     "github.com/go-chi/chi/v5"
     "github.com/shipherman/go-metrics/internal/handlers"
-    "github.com/shipherman/go-metrics/internal/middleware/logger"
+//     "github.com/shipherman/go-metrics/internal/middleware/logger"
     "github.com/shipherman/go-metrics/internal/middleware/gzip"
     "github.com/shipherman/go-metrics/internal/options"
 
@@ -13,7 +13,7 @@ import (
 func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
     // Routers
     router := chi.NewRouter()
-    router.Use(logger.LogHandler)
+//     router.Use(logger.LogHandler)
     router.Use(gzip.GzipHandle)
     router.Get("/", h.HandleMain)
     router.Get("/ping", h.HandlePing)

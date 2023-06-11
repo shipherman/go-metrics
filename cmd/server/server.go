@@ -59,6 +59,13 @@ func main() {
         store = &storage.Localfile{Path: cfg.Filename}
     }
 
+    if cfg.Restore {
+        err := store.RestoreData(&h.Store)
+        if err != nil {
+            log.Println("Could not restore data: ", err)
+        }
+    }
+
     // Write MemStorage to a store provider
     // Interval used for file saving
     go func() {
