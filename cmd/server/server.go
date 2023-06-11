@@ -66,8 +66,7 @@ func main() {
         }
     }()
 
-    // Close file/db
-    defer store.Close()
+
 
     // Define server parameters
     server := http.Server{
@@ -86,6 +85,9 @@ func main() {
         if err := storage.SaveData(h.Store, store); err != nil {
             log.Printf("Error during saving data to file: %v", err)
         }
+
+        // Close file/db
+        defer store.Close()
 
         if err := server.Shutdown(context.Background()); err != nil {
             log.Printf("HTTP Server Shutdown Error: %v", err)
