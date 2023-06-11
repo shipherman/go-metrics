@@ -20,6 +20,7 @@ import (
 
 
 func main() {
+    log.Println("Starting server...")
     // Store variable will be used file or database to save metrics
     var store storage.StorageWriter
 
@@ -29,7 +30,7 @@ func main() {
         panic(err)
     }
 
-    log.Println("Starting server...")
+
     log.Println("Params:", cfg)
 
     // Handler for router
@@ -74,6 +75,8 @@ func main() {
         Handler: router,
     }
 
+    log.Println("Started. Running")
+
     // Graceful shutdown
     idleConnectionsClosed := make(chan struct{})
     go func() {
@@ -82,7 +85,7 @@ func main() {
         <-sigint
         log.Println("Shutting down server")
 
-        if err := storage.SaveData(h.Store, store); err != nil {
+        if err := store.Write(h.Store); err != nil {
             log.Printf("Error during saving data to file: %v", err)
         }
 
