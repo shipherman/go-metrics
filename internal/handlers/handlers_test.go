@@ -46,15 +46,14 @@ func TestHandleMain (t *testing.T){
             req := httptest.NewRequest(tc.httpMethod, tc.request, nil)
             w := httptest.NewRecorder()
 
-            h, err := NewHandler(tc.filename, tc.restore)
-            require.NoError(t, err)
+            h := NewHandler()
             h.HandleMain(w,req)
 
             result := w.Result()
             assert.Equal(t, tc.want.contentType, result.Header.Get("Content-Type"))
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err = result.Body.Close()
+            err := result.Body.Close()
             require.NoError(t, err)
         })
     }
@@ -180,15 +179,14 @@ func TestHandleUpdate (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            h, err := NewHandler(tc.filename, tc.restore)
-            require.NoError(t, err)
+            h := NewHandler()
             h.HandleUpdate(w, req)
 
             result := w.Result()
 
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err = result.Body.Close()
+            err := result.Body.Close()
             require.NoError(t, err)
         })
     }
@@ -285,8 +283,7 @@ func TestHandleValue (t *testing.T) {
 
             req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rContext))
 
-            h, err := NewHandler(tc.filename, tc.restore)
-            require.NoError(t, err)
+            h := NewHandler()
             h.HandleUpdate(w,req)
 
             req = httptest.NewRequest(tc.httpMethod, "/value/", nil)
@@ -300,7 +297,7 @@ func TestHandleValue (t *testing.T) {
             result := w.Result()
             assert.Equal(t, tc.want.statusCode, result.StatusCode)
 
-            err = result.Body.Close()
+            err := result.Body.Close()
             require.NoError(t, err)
         })
     }
