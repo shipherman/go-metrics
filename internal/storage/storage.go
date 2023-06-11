@@ -17,7 +17,8 @@ type MemStorage struct {
 type StorageWriter interface {
     Write (s MemStorage) error
     RestoreData (s *MemStorage) error
-//     Save () error
+    Save (t int, s MemStorage) error
+    Close ()
 }
 
 // Write data to store

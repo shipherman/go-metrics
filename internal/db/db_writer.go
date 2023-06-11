@@ -28,3 +28,8 @@ func (db *Database) Write(s storage.MemStorage) error {
     }
     return nil
 }
+
+
+func (db *Database) Save (t int, s storage.MemStorage) error {
+    return db.Write(s)
+}

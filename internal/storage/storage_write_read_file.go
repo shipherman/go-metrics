@@ -2,6 +2,7 @@ package storage
 
 import (
     "os"
+    "time"
     "encoding/json"
 )
 
@@ -63,4 +64,17 @@ func (localfile *Localfile) RestoreData(s *MemStorage) error {
         return err
     }
     return nil
+}
+
+func (localfile *Localfile) Save (t int, s MemStorage) error {
+    time.Sleep(time.Second * time.Duration(t))
+    err := localfile.Write(s)
+    if err != nil {
+        return err
+    }
+    return nil
+}
+
+func (localfile *Localfile) Close() {
+    //
 }

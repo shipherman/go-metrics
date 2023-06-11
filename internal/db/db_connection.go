@@ -32,3 +32,7 @@ func Connect(connstring string) (Database, error) {
 
     return db, nil
 }
+
+func (db *Database) Close() {
+    db.Conn.Close(context.Background())
+}
