@@ -7,6 +7,7 @@ import (
     "net/http"
     "encoding/json"
     "bytes"
+    "context"
 
     "github.com/shipherman/go-metrics/internal/storage"
 
@@ -50,7 +51,7 @@ func sendBatchReport (serverAddress string, metrics []Metrics) error {
 }
 
 
-func ProcessBatch (serverAddress string, m storage.MemStorage) error {
+func ProcessBatch (ctx context.Context, serverAddress string, m storage.MemStorage) error {
     var metrics []Metrics
 
     serverAddress = strings.Join([]string{"http:/",serverAddress,"updates/"}, "/")
