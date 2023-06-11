@@ -29,6 +29,10 @@ func main() {
         panic(err)
     }
 
+    log.Println("Starting server...")
+    log.Println("Params:", cfg)
+
+    // Handler for router
     h := handlers.NewHandler()
 
     router, err := routers.InitRouter(cfg, h)
@@ -42,26 +46,30 @@ func main() {
         if err != nil {
             log.Println(err)
         }
-        defer database.Conn.Close(context.Background())
-        // Use database as store
+
+        // Use database as a store
         store = &database
 
         //Define DB for handlers
         handlers.SetDB(database.Conn)
+
     } else if cfg.Filename != "" {
         // use json file to store metrics
         store = &storage.Localfile{Path: cfg.Filename}
-//         go func() {
-//             for {
-//                 time.Sleep(time.Second * time.Duration(cfg.Interval))
-//                 storage.SaveData(h.Store, &file)
-//             }
-//         }()
     }
 
-    log.Println(cfg)
-    log.Println("Starting server...")
+    // Write MemStorage to a store provider
+    // Interval used for file saving
+    go func() {
+        for {
+            store.Save(cfg.Interval, h.Store)
+        }
+    }()
 
+    // Close file/db
+    defer store.Close()
+
+    // Define server parameters
     server := http.Server{
         Addr: cfg.Address,
         Handler: router,
@@ -85,7 +93,7 @@ func main() {
         close(idleConnectionsClosed)
     }()
 
-    //run server
+    // Run server
     log.Fatal(server.ListenAndServe())
 
     <-idleConnectionsClosed
