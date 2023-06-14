@@ -32,6 +32,5 @@ func (db *Database) Write(s storage.MemStorage) error {
 
 func (db *Database) Save (t int, s storage.MemStorage) error {
     time.Sleep(time.Second * time.Duration(t))
-
     return db.Write(s)
 }

@@ -11,7 +11,8 @@ func (db *Database) SelectAll() error {
     rows, err := db.Conn.Query(context.Background(),
                            `SELECT * FROM counter_metrics
                            UNION
-                           SELECT * FROM gauge_metrics`)
+                           SELECT * FROM gauge_metrics
+                           Limit 10`)
     if err != nil {
             return err
     }
