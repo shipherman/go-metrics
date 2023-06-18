@@ -53,6 +53,10 @@ func main() {
 
         //Define DB for handlers
         handlers.SetDB(database.Conn)
+
+    } else {
+        // use json file to store metrics
+        store = &storage.Localfile{Path: cfg.Filename}
     }
 
     if cfg.Restore {

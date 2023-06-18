@@ -29,7 +29,7 @@ func ParseOptions() (Options, error) {
                    "f", "/tmp/metrics-db.json",
                    "File path")
     flag.BoolVar(&cfg.Restore,
-                 "r", false,
+                 "r", true,
                  "Restore metrics value from file")
     flag.StringVar(&cfg.DBDSN,
                    "d", //fmt.Sprintf(
