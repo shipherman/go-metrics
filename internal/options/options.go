@@ -15,14 +15,6 @@ type Options struct {
     DBDSN string    `env:"DATABASE_DSN"`
 }
 
-// DB connection string parameters
-const (
-    host     = "127.0.0.1"
-    port     = 5432
-    user     = "postgres"
-    password = "pass"
-    dbname   = "postgres"
-)
 
 func ParseOptions() (Options, error) {
     var cfg Options
