@@ -14,16 +14,12 @@ type Metrics struct {
 
 type Handler struct {
     Store storage.MemStorage
+    DBconn *pgx.Conn
 }
 
 const counterType = "counter"
 const gaugeType = "gauge"
 
-var dbconn *pgx.Conn
-
-func SetDB(conn *pgx.Conn) {
-    dbconn = conn
-}
 
 // Create new handler and previous reports info from file it needed
 func NewHandler() (Handler) {

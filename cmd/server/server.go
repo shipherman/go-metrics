@@ -7,7 +7,6 @@ import (
     "net/http"
     "log"
     "context"
-//     "time"
 
     "github.com/shipherman/go-metrics/internal/routers"
     "github.com/shipherman/go-metrics/internal/options"
@@ -36,11 +35,6 @@ func main() {
     // Handler for router
     h := handlers.NewHandler()
 
-    router, err := routers.InitRouter(cfg, h)
-    if err != nil {
-        panic(err)
-    }
-
     // Identify wether use DB or file to save metrics
     if cfg.DBDSN != "" {
         database, err := db.Connect(cfg.DBDSN)
@@ -52,11 +46,17 @@ func main() {
         store = &database
 
         //Define DB for handlers
-        handlers.SetDB(database.Conn)
+        h.DBconn = database.Conn
 
     } else {
         // use json file to store metrics
         store = &storage.Localfile{Path: cfg.Filename}
+    }
+
+    // Init router
+    router, err := routers.InitRouter(cfg, h)
+    if err != nil {
+        panic(err)
     }
 
     if cfg.Restore {
