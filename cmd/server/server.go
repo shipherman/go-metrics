@@ -7,42 +7,84 @@ import (
     "net/http"
     "log"
     "context"
-    "time"
 
     "github.com/shipherman/go-metrics/internal/routers"
     "github.com/shipherman/go-metrics/internal/options"
     "github.com/shipherman/go-metrics/internal/storage"
+    "github.com/shipherman/go-metrics/internal/handlers"
+    "github.com/shipherman/go-metrics/internal/db"
+
 )
 
 
+
 func main() {
-    //parse cli options
+    log.Println("Starting server...")
+    // Store variable will be used file or database to save metrics
+    var store storage.StorageWriter
+
+    // Parse cli options into config
     cfg, err := options.ParseOptions()
     if err != nil {
         panic(err)
     }
 
-    log.Println(cfg)
-    log.Println("Starting server...")
 
+    log.Println("Params:", cfg)
 
-    router, hStore, err := routers.InitRouter(cfg)
+    // Handler for router
+    h := handlers.NewHandler()
+
+    // Identify wether use DB or file to save metrics
+    if cfg.DBDSN != "" {
+        database, err := db.Connect(cfg.DBDSN)
+        if err != nil {
+            log.Println(err)
+        }
+
+        // Use database as a store
+        store = &database
+
+        //Define DB for handlers
+        h.DBconn = database.Conn
+
+    } else {
+        // use json file to store metrics
+        store = &storage.Localfile{Path: cfg.Filename}
+    }
+
+    // Init router
+    router, err := routers.InitRouter(cfg, h)
     if err != nil {
         panic(err)
     }
 
+    if cfg.Restore {
+        err := store.RestoreData(&h.Store)
+        if err != nil {
+            log.Println("Could not restore data: ", err)
+        }
+    }
+
+    // Write MemStorage to a store provider
+    // Interval used for file saving
     go func() {
         for {
-            time.Sleep(time.Second * time.Duration(cfg.Interval))
-            storage.WriteDataToFile(cfg.Filename, hStore.Store)
+            store.Save(cfg.Interval, h.Store)
         }
     }()
 
+
+
+    // Define server parameters
     server := http.Server{
         Addr: cfg.Address,
         Handler: router,
     }
 
+    log.Println("Started. Running")
+
+    // Graceful shutdown
     idleConnectionsClosed := make(chan struct{})
     go func() {
         sigint := make(chan os.Signal, 1)
@@ -50,9 +92,12 @@ func main() {
         <-sigint
         log.Println("Shutting down server")
 
-        if err := storage.WriteDataToFile(cfg.Filename, hStore.Store); err != nil {
+        if err := store.Write(h.Store); err != nil {
             log.Printf("Error during saving data to file: %v", err)
         }
+
+        // Close file/db
+        defer store.Close()
 
         if err := server.Shutdown(context.Background()); err != nil {
             log.Printf("HTTP Server Shutdown Error: %v", err)
@@ -60,9 +105,7 @@ func main() {
         close(idleConnectionsClosed)
     }()
 
-    //run server
-
-
+    // Run server
     log.Fatal(server.ListenAndServe())
 
     <-idleConnectionsClosed
