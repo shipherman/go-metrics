@@ -14,8 +14,8 @@ import (
     "crypto/hmac"
 
     "github.com/shipherman/go-metrics/internal/storage"
-
 )
+
 
 func sendBatchReport (serverAddress string, metrics []Metrics) error {
     var sha256sum string
