@@ -2,32 +2,52 @@ package main
 
 import (
     "io"
+    "io/ioutil"
     "fmt"
     "strings"
     "net/http"
+    "encoding/hex"
     "encoding/json"
     "bytes"
     "context"
+    "crypto/sha256"
+    "crypto/hmac"
 
     "github.com/shipherman/go-metrics/internal/storage"
 
 )
 
 func sendBatchReport (serverAddress string, metrics []Metrics) error {
+    var sha256sum string
+
     data, err := json.Marshal(metrics)
     if err != nil {
         return err
     }
 
+    // Init request
+    request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer([]byte{}))
+    if err != nil {
+        return err
+    }
+
+    // Encrypt data and set Header
+    if encrypt {
+        h := hmac.New(sha256.New, key)
+        h.Write(data)
+        sha256sum = hex.EncodeToString(h.Sum(nil))
+        request.Header.Set("HashSHA256", sha256sum)
+    }
+
+    
     data, err = compress(data)
     if err != nil {
         return err
     }
 
-    request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer(data))
-    if err != nil {
-        return err
-    }
+    // Redefine request content
+    request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+    
     request.Header.Set("Content-Type", contentType)
     request.Header.Set("Content-Encoding", compression)
     request.Header.Set("Accept-Encoding", compression)

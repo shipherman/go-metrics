@@ -10,6 +10,9 @@ import (
 
 type Sender func(context.Context, string, storage.MemStorage) error
 
+var encrypt bool
+var key []byte
+
 
 func Retry(sender Sender, retries int, delay time.Duration) Sender {
     return func(ctx context.Context, serverAddress string, m storage.MemStorage) error {
@@ -40,6 +43,11 @@ func main() {
     cfg, err := parseOptions()
     if err != nil {
         panic(err)
+    }
+
+    if cfg.Key != "" {
+        encrypt = true
+        key = []byte(cfg.Key)
     }
 
     // Initiate tickers
