@@ -38,7 +38,6 @@ func sendBatchReport (serverAddress string, metrics []Metrics) error {
         sha256sum = hex.EncodeToString(h.Sum(nil))
         request.Header.Set("HashSHA256", sha256sum)
     }
-
     
     data, err = compress(data)
     if err != nil {
