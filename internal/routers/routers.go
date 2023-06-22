@@ -21,7 +21,7 @@ func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
     router := chi.NewRouter()
     router.Use(logger.LogHandler)
     router.Use(gzip.GzipHandle)
-    router.Use(crypt.Decryptor)
+    router.Use(crypt.CheckReqSign)
     router.Get("/", h.HandleMain)
     router.Get("/ping", h.HandlePing)
     router.Post("/updates/", h.HandleBatchUpdate)

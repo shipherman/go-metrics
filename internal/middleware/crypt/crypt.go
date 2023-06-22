@@ -12,7 +12,7 @@ import (
 )
 
 
-func Decryptor (next http.Handler) http.Handler {
+func CheckReqSign (next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("HashSHA256") == "" {
             fmt.Println("Skip hash calculation")
@@ -50,4 +50,10 @@ func Decryptor (next http.Handler) http.Handler {
 		
 		next.ServeHTTP(w, r)
 	})
+}
+
+func SignResponse (next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// To Do
+	}
 }
