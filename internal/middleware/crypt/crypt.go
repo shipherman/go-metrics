@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"bytes"
 	"net/http"
-	"io/ioutil"
+	"io"
 	"encoding/hex"
 	"crypto/sha256"
 	"crypto/hmac"
@@ -22,7 +22,7 @@ func CheckReqSign(key string) func(http.Handler) http.Handler {
 			
 			var sign []byte
 
-			body, err := ioutil.ReadAll(r.Body)
+			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -49,7 +49,7 @@ func CheckReqSign(key string) func(http.Handler) http.Handler {
 			w.Header().Set("HashSHA256", hex.EncodeToString(sha256sum))
 
 			// Restore request body for further processing 
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+			r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 			next.ServeHTTP(w, r)
 		})
