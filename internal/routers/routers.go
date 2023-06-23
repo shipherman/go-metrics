@@ -14,14 +14,13 @@ import (
 
 
 func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
-    // Context for router
-    // ctx := context.WithValue(context.Background(), key, cfg.Key)
-
     // Routers
     router := chi.NewRouter()
     router.Use(logger.LogHandler)
     router.Use(gzip.GzipHandle)
-    router.Use(crypt.CheckReqSign)
+    if cfg.Key != "" {
+        router.Use(crypt.CheckReqSign(cfg.Key))
+    }
     router.Get("/", h.HandleMain)
     router.Get("/ping", h.HandlePing)
     router.Post("/updates/", h.HandleBatchUpdate)
