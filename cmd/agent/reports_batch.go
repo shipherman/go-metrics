@@ -2,7 +2,6 @@ package main
 
 import (
     "io"
-    "io/ioutil"
     "fmt"
     "strings"
     "net/http"
@@ -45,7 +44,7 @@ func sendBatchReport (serverAddress string, metrics []Metrics) error {
     }
 
     // Redefine request content
-    request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+    request.Body = io.NopCloser(bytes.NewBuffer(data))
     
     request.Header.Set("Content-Type", contentType)
     request.Header.Set("Content-Encoding", compression)
