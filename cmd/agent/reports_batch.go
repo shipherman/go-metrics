@@ -69,22 +69,25 @@ func sendBatchReport (serverAddress string, metrics []Metrics) error {
 }
 
 
-func ProcessBatch (ctx context.Context, serverAddress string, m storage.MemStorage) error {
+func ProcessBatch (ctx context.Context, serverAddress string,
+                    metricsCh chan storage.MemStorage) error {
     var metrics []Metrics
+    var m storage.MemStorage
 
     serverAddress = strings.Join([]string{"http:/",serverAddress,"updates/"}, "/")
 
+    m = <- metricsCh
     for k, v := range m.CounterData{
         metrics = append(metrics, Metrics{ID:k, MType:counterType, Delta:v})
     }
 
     for k, v := range m.GaugeData{
         metrics = append(metrics, Metrics{ID:k, MType:gaugeType, Value:v})
-    }
+    }   
 
     err := sendBatchReport(serverAddress, metrics)
     if err != nil {
-            return err
+        return err
     }
     return nil
 }

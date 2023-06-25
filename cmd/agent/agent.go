@@ -8,16 +8,16 @@ import (
 
 )
 
-type Sender func(context.Context, string, storage.MemStorage) error
+type Sender func(context.Context, string, chan storage.MemStorage) error
 
 var encrypt bool
 var key []byte
 
 
 func Retry(sender Sender, retries int, delay time.Duration) Sender {
-    return func(ctx context.Context, serverAddress string, m storage.MemStorage) error {
+    return func(ctx context.Context, serverAddress string, metricsCh chan storage.MemStorage) error {
         for r := 0; ; r++ {
-            err := sender(ctx, serverAddress, m)
+            err := sender(ctx, serverAddress, metricsCh)
             if err == nil || r >= retries {
                 // Return when there is no error or the maximum amount
                 // of retries is reached.
@@ -59,16 +59,24 @@ func main() {
     // Initiate new storage
     m := storage.New()
 
+    // Init channels
+    metricsCh := make(chan storage.MemStorage, cfg.RateLimit)
+    defer close(metricsCh)
+
     // Collect data from MemStats and send to the server
     for {
         select {
         case <-pollTicker.C:
-            readMemStats(&m)
+            go readMemStats(&m, metricsCh)
         case <-reportTicker.C:
-            fn := Retry(ProcessBatch, 3, 1*time.Second)
-            err := fn(context.Background(), cfg.ServerAddress, m)
-            if err != nil {
-                log.Println(err)
+            for w := 1; w <= cfg.RateLimit; w++ {
+                go func() {
+                    fn := Retry(ProcessBatch, 3, 1*time.Second)
+                    err := fn(context.Background(), cfg.ServerAddress, metricsCh)
+                    if err != nil {
+                        log.Println(err)
+                    }
+                }()
             }
         }
     }

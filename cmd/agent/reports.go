@@ -31,7 +31,7 @@ const gaugeType string = "gauge"
 
 
 // Renew metrics through runtime package
-func readMemStats(m *storage.MemStorage) {
+func readMemStats(m *storage.MemStorage, metricsCh chan storage.MemStorage) {
     var stat runtime.MemStats
     var mu sync.RWMutex
     mu.Lock()
@@ -66,6 +66,7 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateGauge("RandomValue", storage.Gauge(rand.Float32()))
     m.UpdateCounter("PollCount", storage.Counter(1))
     mu.Unlock()
+    metricsCh <- *m
 }
 
 
