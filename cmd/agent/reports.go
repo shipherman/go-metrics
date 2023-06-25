@@ -10,7 +10,7 @@ import (
     "bytes"
     "io"
     "log"
-
+    "sync"
     "compress/gzip"
 
     "github.com/shipherman/go-metrics/internal/storage"
@@ -33,6 +33,8 @@ const gaugeType string = "gauge"
 // Renew metrics through runtime package
 func readMemStats(m *storage.MemStorage) {
     var stat runtime.MemStats
+    var mu sync.RWMutex
+    mu.Lock()
     runtime.ReadMemStats(&stat)
     m.UpdateGauge("Alloc", storage.Gauge(stat.Alloc))
     m.UpdateGauge("BuckHashSys", storage.Gauge(stat.BuckHashSys))
@@ -63,6 +65,7 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateGauge("TotalAlloc", storage.Gauge(stat.TotalAlloc))
     m.UpdateGauge("RandomValue", storage.Gauge(rand.Float32()))
     m.UpdateCounter("PollCount", storage.Counter(1))
+    mu.Unlock()
 }
 
 
