@@ -10,6 +10,7 @@ type options struct {
     ServerAddress string `env:"ADDRESS"`
     PollInterval int `env:"POLL_INTERVAL"`
     ReportInterval int `env:"REPORT_INTERVAL"`
+    RateLimit int `env:"RATE_LIMIT"`
     Key string `env:"KEY"`
 }
 
@@ -25,6 +26,8 @@ func parseOptions () (options, error) {
                 "Address of the server to send metrics")
     flag.StringVar(&opt.Key, "k", "",
                 "Encryption key")
+    flag.IntVar(&opt.RateLimit, "l", 3,
+                "Rate Limit")
     flag.Parse()
 
     err := env.Parse(&opt)
