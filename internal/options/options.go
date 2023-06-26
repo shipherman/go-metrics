@@ -38,10 +38,7 @@ func ParseOptions() (Options, error) {
                         //host, port, dbname, user, password),
                        "",
                    "Connection string in Postgres format")
-    flag.StringVar(&cfg.Key,
-                    "k","",
-                    "Sing key")
-                    
+    flag.StringVar(&cfg.Key,  "k", "", "Sing key")     
     flag.Parse()
 
     // get env vars
