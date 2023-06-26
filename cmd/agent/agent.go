@@ -8,16 +8,13 @@ import (
 
 )
 
-type Sender func(context.Context, string, chan storage.MemStorage) error
-
-var encrypt bool
-var key []byte
+type Sender func(context.Context, Options, chan storage.MemStorage) error
 
 
 func Retry(sender Sender, retries int, delay time.Duration) Sender {
-    return func(ctx context.Context, serverAddress string, metricsCh chan storage.MemStorage) error {
+    return func(ctx context.Context, cfg Options, metricsCh chan storage.MemStorage) error {
         for r := 0; ; r++ {
-            err := sender(ctx, serverAddress, metricsCh)
+            err := sender(ctx, cfg, metricsCh)
             if err == nil || r >= retries {
                 // Return when there is no error or the maximum amount
                 // of retries is reached.
@@ -45,11 +42,6 @@ func main() {
         panic(err)
     }
 
-    if cfg.Key != "" {
-        encrypt = true
-        key = []byte(cfg.Key)
-    }
-
     // Initiate tickers
     pollTicker := time.NewTicker(time.Second * time.Duration(cfg.PollInterval))
 	defer pollTicker.Stop()
@@ -72,7 +64,7 @@ func main() {
             for w := 1; w <= cfg.RateLimit; w++ {
                 go func() {
                     fn := Retry(ProcessBatch, 3, 1*time.Second)
-                    err := fn(context.Background(), cfg.ServerAddress, metricsCh)
+                    err := fn(context.Background(), cfg, metricsCh)
                     if err != nil {
                         log.Println(err)
                     }

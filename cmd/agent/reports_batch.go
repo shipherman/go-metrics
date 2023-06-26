@@ -3,7 +3,6 @@ package main
 import (
     "io"
     "fmt"
-    "strings"
     "net/http"
     "encoding/hex"
     "encoding/json"
@@ -16,7 +15,7 @@ import (
 )
 
 
-func sendBatchReport (serverAddress string, metrics []Metrics) error {
+func sendBatchReport (cfg Options, metrics []Metrics) error {
     var sha256sum string
 
     data, err := json.Marshal(metrics)
@@ -25,14 +24,14 @@ func sendBatchReport (serverAddress string, metrics []Metrics) error {
     }
 
     // Init request
-    request, err := http.NewRequest("POST", serverAddress, bytes.NewBuffer([]byte{}))
+    request, err := http.NewRequest("POST", cfg.ServerAddress, bytes.NewBuffer([]byte{}))
     if err != nil {
         return err
     }
 
     // Encrypt data and set Header
-    if encrypt {
-        h := hmac.New(sha256.New, key)
+    if cfg.Encrypt {
+        h := hmac.New(sha256.New, cfg.KeyByte)
         h.Write(data)
         sha256sum = hex.EncodeToString(h.Sum(nil))
         request.Header.Set("HashSHA256", sha256sum)
@@ -69,25 +68,27 @@ func sendBatchReport (serverAddress string, metrics []Metrics) error {
 }
 
 
-func ProcessBatch (ctx context.Context, serverAddress string,
+func ProcessBatch (ctx context.Context, cfg Options,
                     metricsCh chan storage.MemStorage) error {
     var metrics []Metrics
     var m storage.MemStorage
 
-    serverAddress = strings.Join([]string{"http:/",serverAddress,"updates/"}, "/")
-
+    // Receive MemStorage with actual metrics
     m = <- metricsCh
+
+    // Prepare structure to send to the server
     for k, v := range m.CounterData{
         metrics = append(metrics, Metrics{ID:k, MType:counterType, Delta:v})
     }
-
     for k, v := range m.GaugeData{
         metrics = append(metrics, Metrics{ID:k, MType:gaugeType, Value:v})
     }   
 
-    err := sendBatchReport(serverAddress, metrics)
+    // Send report
+    err := sendBatchReport(cfg, metrics)
     if err != nil {
         return err
     }
+
     return nil
 }
