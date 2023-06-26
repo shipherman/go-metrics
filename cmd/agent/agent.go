@@ -4,6 +4,8 @@ import (
     "log"
     "time"
     "context"
+    "sync"
+
     "github.com/shipherman/go-metrics/internal/storage"
 
 )
@@ -42,12 +44,6 @@ func main() {
         panic(err)
     }
 
-    // Initiate tickers
-    pollTicker := time.NewTicker(time.Second * time.Duration(cfg.PollInterval))
-	defer pollTicker.Stop()
-    reportTicker := time.NewTicker(time.Second * time.Duration(cfg.ReportInterval))
-	defer reportTicker.Stop()
-
     // Initiate new storage
     m := storage.New()
 
@@ -56,11 +52,22 @@ func main() {
     defer close(metricsCh)
 
     // Collect data from MemStats and send to the server
-    for {
-        select {
-        case <-pollTicker.C:
-            go readMemStats(&m, metricsCh)
-        case <-reportTicker.C:
+
+    var wg sync.WaitGroup
+
+    // Gather facts
+    go func(timer time.Duration){
+        for{
+            time.Sleep(timer)
+            readMemStats(&m, metricsCh)
+        }
+    }(time.Second * time.Duration(cfg.PollInterval))
+    wg.Add(1)
+
+    // Send metrics to the server
+    go func(timer time.Duration) {
+        for {
+            time.Sleep(timer)
             for w := 1; w <= cfg.RateLimit; w++ {
                 go func() {
                     fn := Retry(ProcessBatch, 3, 1*time.Second)
@@ -71,5 +78,8 @@ func main() {
                 }()
             }
         }
-    }
+    }(time.Second * time.Duration(cfg.ReportInterval))
+    wg.Add(1)
+
+    wg.Wait()
 }

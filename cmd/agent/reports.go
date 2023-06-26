@@ -38,7 +38,7 @@ const gaugeType string = "gauge"
 func readMemStats(m *storage.MemStorage, metricsCh chan storage.MemStorage) {
     var stat runtime.MemStats
     var mu sync.RWMutex
-    
+
     mu.Lock()
     
     runtime.ReadMemStats(&stat)
@@ -81,6 +81,7 @@ func readMemStats(m *storage.MemStorage, metricsCh chan storage.MemStorage) {
     m.UpdateGauge("CPUutilization1", storage.Gauge(cpu1[0]))
     
     mu.Unlock()
+
     metricsCh <- *m
 }
 
