@@ -4,7 +4,6 @@ import (
     "log"
     "time"
     "context"
-    "sync"
 
     "github.com/shipherman/go-metrics/internal/storage"
 
@@ -48,13 +47,12 @@ func main() {
     m := storage.New()
 
     // Init channels
+    done := make(chan struct{})
     metricsCh := make(chan storage.MemStorage, cfg.RateLimit)
     defer close(metricsCh)
 
+
     // Collect data from MemStats and send to the server
-
-    var wg sync.WaitGroup
-
     // Gather facts
     go func(timer time.Duration){
         for{
@@ -62,7 +60,6 @@ func main() {
             readMemStats(&m, metricsCh)
         }
     }(time.Second * time.Duration(cfg.PollInterval))
-    wg.Add(1)
 
     // Send metrics to the server
     for w := 1; w <= cfg.RateLimit; w++ {
@@ -77,7 +74,12 @@ func main() {
             }
         }(time.Second * time.Duration(cfg.ReportInterval))
     }
-    wg.Add(1)
 
-    wg.Wait()
+    for{
+        select{
+        case <- done:
+            break
+        default:
+        }
+    }
 }
