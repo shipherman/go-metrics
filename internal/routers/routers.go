@@ -1,10 +1,13 @@
 package routers
 
 import (
+    // "context"
+
     "github.com/go-chi/chi/v5"
     "github.com/shipherman/go-metrics/internal/handlers"
     "github.com/shipherman/go-metrics/internal/middleware/logger"
     "github.com/shipherman/go-metrics/internal/middleware/gzip"
+    "github.com/shipherman/go-metrics/internal/middleware/crypt"
     "github.com/shipherman/go-metrics/internal/options"
 
 )
@@ -15,6 +18,9 @@ func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
     router := chi.NewRouter()
     router.Use(logger.LogHandler)
     router.Use(gzip.GzipHandle)
+    if cfg.Key != "" {
+        router.Use(crypt.CheckReqSign(cfg.Key))
+    }
     router.Get("/", h.HandleMain)
     router.Get("/ping", h.HandlePing)
     router.Post("/updates/", h.HandleBatchUpdate)

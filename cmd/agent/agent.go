@@ -4,17 +4,21 @@ import (
     "log"
     "time"
     "context"
+    "os"
+    "os/signal"
+    "syscall"
+
     "github.com/shipherman/go-metrics/internal/storage"
 
 )
 
-type Sender func(context.Context, string, storage.MemStorage) error
+type Sender func(context.Context, Options, chan storage.MemStorage) error
 
 
 func Retry(sender Sender, retries int, delay time.Duration) Sender {
-    return func(ctx context.Context, serverAddress string, m storage.MemStorage) error {
+    return func(ctx context.Context, cfg Options, metricsCh chan storage.MemStorage) error {
         for r := 0; ; r++ {
-            err := sender(ctx, serverAddress, m)
+            err := sender(ctx, cfg, metricsCh)
             if err == nil || r >= retries {
                 // Return when there is no error or the maximum amount
                 // of retries is reached.
@@ -42,26 +46,46 @@ func main() {
         panic(err)
     }
 
-    // Initiate tickers
-    pollTicker := time.NewTicker(time.Second * time.Duration(cfg.PollInterval))
-	defer pollTicker.Stop()
-    reportTicker := time.NewTicker(time.Second * time.Duration(cfg.ReportInterval))
-	defer reportTicker.Stop()
-
     // Initiate new storage
     m := storage.New()
 
+    // Init channels
+    done := make(chan struct{})
+    metricsCh := make(chan storage.MemStorage, cfg.RateLimit)
+    defer close(metricsCh)
+
+
     // Collect data from MemStats and send to the server
-    for {
-        select {
-        case <-pollTicker.C:
-            readMemStats(&m)
-        case <-reportTicker.C:
-            fn := Retry(ProcessBatch, 3, 1*time.Second)
-            err := fn(context.Background(), cfg.ServerAddress, m)
-            if err != nil {
-                log.Println(err)
-            }
+    // Gather facts
+    go func(timer time.Duration){
+        for{
+            time.Sleep(timer)
+            readMemStats(&m, metricsCh)
         }
+    }(time.Second * time.Duration(cfg.PollInterval))
+
+    // Send metrics to the server
+    for w := 1; w <= cfg.RateLimit; w++ {
+        go func(timer time.Duration) {
+            for {
+                time.Sleep(timer)
+                fn := Retry(ProcessBatch, 3, 1*time.Second)
+                err := fn(context.Background(), cfg, metricsCh)
+                if err != nil {
+                    log.Println(err)
+                }
+            }
+        }(time.Second * time.Duration(cfg.ReportInterval))
     }
+
+    // Gracefull shutdown
+    go func() {
+        sigint := make(chan os.Signal, 1)
+        signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+        <-sigint
+
+        close(done)
+    }()
+
+    <- done
 }

@@ -13,6 +13,7 @@ type Options struct {
     Filename string `env:"FILE_STORAGE_PATH"`
     Restore bool    `env:"RESTORE"`
     DBDSN string    `env:"DATABASE_DSN"`
+    Key string      `env:"KEY"`
 }
 
 
@@ -37,6 +38,7 @@ func ParseOptions() (Options, error) {
                         //host, port, dbname, user, password),
                        "",
                    "Connection string in Postgres format")
+    flag.StringVar(&cfg.Key,  "k", "", "Sing key")     
     flag.Parse()
 
     // get env vars

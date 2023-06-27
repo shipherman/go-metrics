@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "time"
     "runtime"
     "strings"
     "net/http"
@@ -10,10 +11,13 @@ import (
     "bytes"
     "io"
     "log"
-
+    "sync"
     "compress/gzip"
 
     "github.com/shipherman/go-metrics/internal/storage"
+    
+    "github.com/shirou/gopsutil/v3/mem"
+    "github.com/shirou/gopsutil/v3/cpu"
 )
 
 type Metrics struct {
@@ -31,8 +35,12 @@ const gaugeType string = "gauge"
 
 
 // Renew metrics through runtime package
-func readMemStats(m *storage.MemStorage) {
+func readMemStats(m *storage.MemStorage, metricsCh chan storage.MemStorage) {
     var stat runtime.MemStats
+    var mu sync.RWMutex
+
+    mu.Lock()
+    
     runtime.ReadMemStats(&stat)
     m.UpdateGauge("Alloc", storage.Gauge(stat.Alloc))
     m.UpdateGauge("BuckHashSys", storage.Gauge(stat.BuckHashSys))
@@ -63,6 +71,18 @@ func readMemStats(m *storage.MemStorage) {
     m.UpdateGauge("TotalAlloc", storage.Gauge(stat.TotalAlloc))
     m.UpdateGauge("RandomValue", storage.Gauge(rand.Float32()))
     m.UpdateCounter("PollCount", storage.Counter(1))
+    
+    // gopsutil metrics
+    vmem, _ := mem.VirtualMemory()
+    cpu1, _ := cpu.Percent(time.Duration(0), true)
+    
+    m.UpdateGauge("TotalMemory", storage.Gauge(vmem.Total))
+    m.UpdateGauge("FreeMemory", storage.Gauge(vmem.Free))
+    m.UpdateGauge("CPUutilization1", storage.Gauge(cpu1[0]))
+    
+    mu.Unlock()
+
+    metricsCh <- *m
 }
 
 
@@ -72,15 +92,15 @@ func compress(data []byte) ([]byte, error) {
     var b bytes.Buffer
     w, err := gzip.NewWriterLevel(&b, gzip.BestSpeed)
     if err != nil {
-        return nil, fmt.Errorf("failed init compress writer: %v", err)
+        return nil, fmt.Errorf("failed init compress writer: %vmem", err)
     }
     _, err = w.Write(data)
     if err != nil {
-        return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+        return nil, fmt.Errorf("failed write data to compress temporary buffer: %vmem", err)
     }
     err = w.Close()
     if err != nil {
-        return nil, fmt.Errorf("failed compress data: %v", err)
+        return nil, fmt.Errorf("failed compress data: %vmem", err)
     }
     return b.Bytes(), nil
 }
@@ -134,8 +154,8 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
     serverAddress = strings.Join([]string{"http:/",serverAddress,"update/"}, "/")
 
     //send request to the server
-    for k, v := range m.CounterData{
-        metrics = Metrics{ID:k, MType:counterType, Delta:v}
+    for k, vmem := range m.CounterData{
+        metrics = Metrics{ID:k, MType:counterType, Delta:vmem}
         log.Println(metrics)
         err := sendReport(serverAddress, metrics)
         if err != nil {
@@ -143,8 +163,8 @@ func ProcessReport (serverAddress string, m storage.MemStorage) error {
         }
     }
 
-    for k, v := range m.GaugeData{
-        metrics = Metrics{ID:k, MType:gaugeType, Value:v}
+    for k, vmem := range m.GaugeData{
+        metrics = Metrics{ID:k, MType:gaugeType, Value:vmem}
         err := sendReport(serverAddress, metrics)
         if err != nil {
             return err
