@@ -65,20 +65,18 @@ func main() {
     wg.Add(1)
 
     // Send metrics to the server
-    go func(timer time.Duration) {
-        for {
-            time.Sleep(timer)
-            for w := 1; w <= cfg.RateLimit; w++ {
-                go func() {
-                    fn := Retry(ProcessBatch, 3, 1*time.Second)
-                    err := fn(context.Background(), cfg, metricsCh)
-                    if err != nil {
-                        log.Println(err)
-                    }
-                }()
+    for w := 1; w <= cfg.RateLimit; w++ {
+        go func(timer time.Duration) {
+            for {
+                time.Sleep(timer)
+                fn := Retry(ProcessBatch, 3, 1*time.Second)
+                err := fn(context.Background(), cfg, metricsCh)
+                if err != nil {
+                    log.Println(err)
+                }
             }
-        }
-    }(time.Second * time.Duration(cfg.ReportInterval))
+        }(time.Second * time.Duration(cfg.ReportInterval))
+    }
     wg.Add(1)
 
     wg.Wait()
