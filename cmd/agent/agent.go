@@ -75,12 +75,5 @@ func main() {
         }(time.Second * time.Duration(cfg.ReportInterval))
     }
 
-outerloop:
-    for{
-        select{
-        case <- done:
-            break outerloop
-        default:
-        }
-    }
+    <- done
 }
