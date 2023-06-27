@@ -71,10 +71,9 @@ func sendBatchReport (cfg Options, metrics []Metrics) error {
 func ProcessBatch (ctx context.Context, cfg Options,
                     metricsCh chan storage.MemStorage) error {
     var metrics []Metrics
-    var m storage.MemStorage
 
     // Receive MemStorage with actual metrics
-    m = <- metricsCh
+    m := <- metricsCh
 
     // Prepare structure to send to the server
     for k, v := range m.CounterData{
