@@ -4,6 +4,9 @@ import (
     "log"
     "time"
     "context"
+    "os"
+    "os/signal"
+    "syscall"
 
     "github.com/shipherman/go-metrics/internal/storage"
 
@@ -74,6 +77,15 @@ func main() {
             }
         }(time.Second * time.Duration(cfg.ReportInterval))
     }
+
+    // Gracefull shutdown
+    go func() {
+        sigint := make(chan os.Signal, 1)
+        signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+        <-sigint
+
+        close(done)
+    }()
 
     <- done
 }
