@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// Create two tables -- one for counters and one for gauge metrics
 func (db *Database) createTables() error {
 	_, err := db.Conn.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS gauge_metrics(
         id serial PRIMARY KEY,

@@ -1,3 +1,4 @@
+// Package inplement connection to DB and requests to it
 package db
 
 import (
@@ -10,6 +11,7 @@ type Database struct {
 	Conn *pgx.Conn
 }
 
+// Connect to Postgre DB using connection string provided by cmd arguments or environment variable
 func Connect(connstring string) (Database, error) {
 	var db Database
 
@@ -32,6 +34,7 @@ func Connect(connstring string) (Database, error) {
 	return db, nil
 }
 
+// Close DB connection
 func (db *Database) Close() {
 	db.Conn.Close(context.Background())
 }

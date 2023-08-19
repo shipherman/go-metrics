@@ -1,25 +1,25 @@
 package crypt
 
 import (
-	"fmt"
 	"bytes"
-	"net/http"
-	"io"
-	"encoding/hex"
-	"crypto/sha256"
 	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"io"
+	"net/http"
 )
 
-
+// Checks if request has valid sing
 func CheckReqSign(key string) func(http.Handler) http.Handler {
-	return func (next http.Handler) http.Handler {	
+	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("HashSHA256") == "" {
 				fmt.Println("Skip hash calculation")
 				next.ServeHTTP(w, r)
 				return
 			}
-			
+
 			var sign []byte
 
 			body, err := io.ReadAll(r.Body)
@@ -48,7 +48,7 @@ func CheckReqSign(key string) func(http.Handler) http.Handler {
 			// Add calculated hash to headers
 			w.Header().Set("HashSHA256", hex.EncodeToString(sha256sum))
 
-			// Restore request body for further processing 
+			// Restore request body for further processing
 			r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 			next.ServeHTTP(w, r)

@@ -1,94 +1,89 @@
 package logger
 
 import (
-    "os"
-    "time"
-    "net/http"
-    "go.uber.org/zap"
-    "go.uber.org/zap/zapcore"
-)
+	"net/http"
+	"os"
+	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
 
 type (
+	responseData struct {
+		status int
+		size   int
+	}
 
-    responseData struct {
-        status int
-        size int
-    }
-
-    loggingResponseWriter struct {
-        http.ResponseWriter
-        responseData *responseData
-    }
+	loggingResponseWriter struct {
+		http.ResponseWriter
+		responseData *responseData
+	}
 )
-
-const logfile string = "./server.log"
 
 var (
-    DebugLogger *zap.Logger
+	DebugLogger *zap.Logger
 )
 
-
 func init() {
-    highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-        return lvl >= zapcore.ErrorLevel
-    })
-    lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-        return lvl < zapcore.ErrorLevel
-    })
+	highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= zapcore.ErrorLevel
+	})
+	lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl < zapcore.ErrorLevel
+	})
 
-    consoleDebugging := zapcore.Lock(os.Stdout)
-    consoleErrors := zapcore.Lock(os.Stderr)
+	consoleDebugging := zapcore.Lock(os.Stdout)
+	consoleErrors := zapcore.Lock(os.Stderr)
 
-    consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
+	consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
 
-    core := zapcore.NewTee(
-        zapcore.NewCore(consoleEncoder, consoleErrors, highPriority),
-        zapcore.NewCore(consoleEncoder, consoleDebugging, lowPriority),
-    )
-    DebugLogger = zap.New(core)
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, consoleErrors, highPriority),
+		zapcore.NewCore(consoleEncoder, consoleDebugging, lowPriority),
+	)
+	DebugLogger = zap.New(core)
 
 }
 
-
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
-    size, err := r.ResponseWriter.Write(b)
-    r.responseData.size += size
-    return size, err
+	size, err := r.ResponseWriter.Write(b)
+	r.responseData.size += size
+	return size, err
 }
 
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
-    r.ResponseWriter.WriteHeader(statusCode)
-    r.responseData.status = statusCode
+	r.ResponseWriter.WriteHeader(statusCode)
+	r.responseData.status = statusCode
 }
 
-
+// Custome logging middleware
 func LogHandler(next http.Handler) http.Handler {
- logFn := func(w http.ResponseWriter, r *http.Request) {
+	logFn := func(w http.ResponseWriter, r *http.Request) {
 
-        start := time.Now()
+		start := time.Now()
 
-        sugar := DebugLogger.Sugar()
+		sugar := DebugLogger.Sugar()
 
-        responseData := &responseData {
-            status: 0,
-            size: 0,
-        }
-        lw := loggingResponseWriter {
-            ResponseWriter: w,
-            responseData: responseData,
-        }
-        next.ServeHTTP(&lw, r)
+		responseData := &responseData{
+			status: 0,
+			size:   0,
+		}
+		lw := loggingResponseWriter{
+			ResponseWriter: w,
+			responseData:   responseData,
+		}
+		next.ServeHTTP(&lw, r)
 
-        duration := time.Since(start)
+		duration := time.Since(start)
 
-        sugar.Infoln(
-            "uri", r.RequestURI,
-            "method", r.Method,
-            "status", responseData.status,
-            "duration", duration,
-            "size", responseData.size,
-        )
-    }
-    return http.HandlerFunc(logFn)
+		sugar.Infoln(
+			"uri", r.RequestURI,
+			"method", r.Method,
+			"status", responseData.status,
+			"duration", duration,
+			"size", responseData.size,
+		)
+	}
+	return http.HandlerFunc(logFn)
 }

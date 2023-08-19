@@ -49,6 +49,7 @@ func (localfile *Localfile) Write(s MemStorage) error {
 	return nil
 }
 
+// Restore metrics from local file
 func (localfile *Localfile) RestoreData(s MemStorage) error {
 	// Read saved metrics from file
 	f, err := os.OpenFile(localfile.Path, os.O_RDONLY|os.O_CREATE, 0666)
@@ -65,6 +66,7 @@ func (localfile *Localfile) RestoreData(s MemStorage) error {
 	return nil
 }
 
+// Save metrics to local file
 func (localfile *Localfile) Save(t int, s MemStorage) error {
 	time.Sleep(time.Second * time.Duration(t))
 	err := localfile.Write(s)
@@ -74,6 +76,7 @@ func (localfile *Localfile) Save(t int, s MemStorage) error {
 	return nil
 }
 
+// To Do
 func (localfile *Localfile) Close() {
 	//
 }

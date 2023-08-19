@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// Select all metrics from database
 func (db *Database) SelectAll() error {
 	rows, err := db.Conn.Query(context.Background(),
 		`SELECT * FROM counter_metrics

@@ -1,3 +1,4 @@
+// Handlers package contains functions for http request processing
 package handlers
 
 import (

@@ -11,6 +11,7 @@ import (
 	"github.com/shipherman/go-metrics/internal/options"
 )
 
+// List http server routes
 func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
 	// Routers
 	router := chi.NewRouter()
