@@ -9,22 +9,24 @@ import (
 )
 
 type Options struct {
-	ServerAddress  string `env:"ADDRESS"`
-	PollInterval   int    `env:"POLL_INTERVAL"`
-	ReportInterval int    `env:"REPORT_INTERVAL"`
-	RateLimit      int    `env:"RATE_LIMIT"`
-	Key            string `env:"KEY"`
-	KeyByte        []byte
-	Encrypt        bool
+	ServerAddress    string `env:"ADDRESS"`
+	PollInterval     int    `env:"POLL_INTERVAL"`
+	MaxRetryInterval int
+	ReportInterval   int    `env:"REPORT_INTERVAL"`
+	RateLimit        int    `env:"RATE_LIMIT"`
+	Key              string `env:"KEY"`
+	KeyByte          []byte
+	Encrypt          bool
 }
 
-// Parse comandline and environment paramenters to Options
 func parseOptions() (Options, error) {
 	var cfg Options
 	cfg.Encrypt = false
 
 	flag.IntVar(&cfg.PollInterval, "p", 2,
 		"Frequensy in seconds for collecting metrics")
+	flag.IntVar(&cfg.MaxRetryInterval, "m", 4,
+		"Max interval to wait aswer from server")
 	flag.IntVar(&cfg.ReportInterval, "r", 10,
 		"Frequensy in seconds for sending report to the server")
 	flag.StringVar(&cfg.ServerAddress, "a", "localhost:8080",

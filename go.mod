@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/shirou/gopsutil/v3 v3.23.5
