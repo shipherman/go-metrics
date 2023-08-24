@@ -20,11 +20,11 @@ func TestMain(m *testing.M) {
 	// For local tests
 	// "host=127.0.0.1 port=5432 dbname=postgres user=postgres password=pass"
 	if err != nil {
-		fmt.Printf("error appear during parsing conn string: %s", err.Error())
+		fmt.Printf("error during parsing conn string: %s", err.Error())
 	}
 	dbc.Conn, err = pgx.ConnectConfig(context.Background(), ConnString)
 	if err != nil {
-		fmt.Printf("error appear during connecting to db: %s", err.Error())
+		fmt.Printf("error during connection to db: %s", err.Error())
 	}
 	dbc.createTables()
 	os.Exit(m.Run())
