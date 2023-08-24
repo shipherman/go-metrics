@@ -60,7 +60,6 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 // Custome logging middleware
 func LogHandler(next http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
-
 		start := time.Now()
 
 		sugar := DebugLogger.Sugar()
