@@ -12,9 +12,13 @@ import (
 )
 
 var dbc Database
+var dsn string
 
 func TestMain(m *testing.M) {
-	ConnString, err := pgx.ParseConfig("host=127.0.0.1 port=5432 dbname=postgres user=postgres password=pass")
+	dsn = os.Getenv("DATABASE_DSN")
+	ConnString, err := pgx.ParseConfig(dsn)
+	// For local tests
+	// "host=127.0.0.1 port=5432 dbname=postgres user=postgres password=pass"
 	if err != nil {
 		fmt.Printf("error appear during parsing conn string: %s", err.Error())
 	}
