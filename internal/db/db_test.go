@@ -52,3 +52,26 @@ func BenchmarkSelectAll(b *testing.B) {
 	err := dbc.SelectAll()
 	require.NoError(b, err)
 }
+
+func TestWrite(t *testing.T) {
+	s := storage.MemStorage{
+		CounterData: map[string]storage.Counter{
+			"c01": 1,
+			"c02": 2,
+		},
+		GaugeData: map[string]storage.Gauge{
+			"g01": 1.01,
+			"g02": 2.02,
+		},
+	}
+	t.Run("Write to DB", func(t *testing.T) {
+		err := dbc.Write(s)
+		require.NoError(t, err)
+	})
+
+}
+
+func TestSelectAll(t *testing.T) {
+	err := dbc.SelectAll()
+	require.NoError(t, err)
+}

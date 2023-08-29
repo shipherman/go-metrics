@@ -14,13 +14,11 @@ func (db *Database) SelectAll() error {
 		return err
 	}
 
-	// fmt.Println("SelectAll")
 	for rows.Next() {
 		_, err := rows.Values()
 		if err != nil {
 			return err
 		}
-		// fmt.Println(data)
 	}
 
 	return nil
