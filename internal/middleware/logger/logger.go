@@ -82,4 +82,4 @@ func LogHandler(next http.Handler) http.Handler {
 		)
 	}
 	return http.HandlerFunc(logFn)
-}
+
