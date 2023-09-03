@@ -1,3 +1,5 @@
+// Package gzip is custom compress middleware
+// Could be replaced with any other
 package gzip
 
 import (
@@ -12,7 +14,7 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
-// Zipper middleware
+// GzipHandle is compression middleware func
 func GzipHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
