@@ -50,7 +50,7 @@ func (localfile *Localfile) Write(s MemStorage) error {
 }
 
 // Restore metrics from local file
-func (localfile *Localfile) RestoreData(s MemStorage) error {
+func (localfile *Localfile) RestoreData(s *MemStorage) error {
 	// Read saved metrics from file
 	f, err := os.OpenFile(localfile.Path, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
