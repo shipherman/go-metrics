@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"regexp"
 
 	"golang.org/x/tools/go/analysis"
@@ -55,7 +58,26 @@ import (
 	"honnef.co/go/tools/staticcheck"
 )
 
+const Config = `config.json`
+
+type ConfigData struct {
+	Staticcheck []string
+}
+
 func main() {
+	appfile, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	data, err := os.ReadFile(filepath.Join(filepath.Dir(appfile), Config))
+	if err != nil {
+		panic(err)
+	}
+	var cfg ConfigData
+	if err = json.Unmarshal(data, &cfg); err != nil {
+		panic(err)
+	}
+
 	mychecks := []*analysis.Analyzer{
 		asmdecl.Analyzer,
 		assign.Analyzer,
@@ -106,7 +128,8 @@ func main() {
 
 	for _, v := range staticcheck.Analyzers {
 		// добавляем в массив нужные проверки
-		if m, _ := regexp.Match(`SA*`, []byte(v.Analyzer.Name)); m {
+		r, _ := regexp.Compile(`SA*`)
+		if m := r.Match([]byte(v.Analyzer.Name)); m {
 			mychecks = append(mychecks, v.Analyzer)
 		}
 	}
