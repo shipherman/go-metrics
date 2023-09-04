@@ -9,8 +9,6 @@ build:
 test:
 	docker run -it -d -e POSTGRES_PASSWORD=pass -e POSTGRES_HOST_AUTH_METHOD=trust -p 5432:5432 postgre
 	go test ./...
-<<<<<<< HEAD
-=======
 
 .PHONY: checkserver
 checkserver:
@@ -19,4 +17,3 @@ checkserver:
 .PHONY: checkagent
 checkagent:
 	bin/checker cmd/agent/*.go
->>>>>>> 4478bed (Add multichecker + staticcheck)
