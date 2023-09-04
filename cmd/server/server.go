@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,8 +16,13 @@ import (
 	"github.com/shipherman/go-metrics/internal/storage"
 )
 
+var buildVersion string
+var buildDate string
+var buildCommit string
+
 func main() {
 	log.Println("Starting server...")
+	fmt.Printf("version=%s, builddate=%s, commit=%s\n", buildVersion, buildDate, buildCommit)
 	// Store variable will be used file or database to save metrics
 	var store storage.StorageWriter
 
