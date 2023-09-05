@@ -55,11 +55,10 @@ func TestHandleJSONUpdate(t *testing.T) {
 
 			h.HandleJSONUpdate(w, req)
 
-			req.Body.Close()
-
 			result := w.Result()
-
 			assert.Equal(t, tc.want.statusCode, result.StatusCode)
+
+			result.Body.Close()
 		})
 	}
 
