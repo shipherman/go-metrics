@@ -8,7 +8,7 @@ import (
 	"github.com/shipherman/go-metrics/internal/storage"
 )
 
-// Handler accept slice of metrics structure in json format
+// HandleBatchUpdate accept slice of metrics structure in json format
 func (h *Handler) HandleBatchUpdate(w http.ResponseWriter, r *http.Request) {
 	var m []Metrics
 	var buf bytes.Buffer
