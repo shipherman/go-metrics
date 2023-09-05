@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Handle ping page. Answer "pong" as plain text
+// HandlePing ping page. Answer "pong" as plain text
 func (h *Handler) HandlePing(w http.ResponseWriter, r *http.Request) {
 	v := "pong\n"
 	err := h.DBconn.Ping(context.Background())

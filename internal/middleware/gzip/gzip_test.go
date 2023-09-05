@@ -16,7 +16,7 @@ func TestGzipHandle(t *testing.T) {
 	h := handlers.NewHandler()
 	h.Store.CounterData = map[string]storage.Counter{"c01": 10}
 
-	gHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			t.Log("Skip compression")
 		}
@@ -33,8 +33,8 @@ func TestGzipHandle(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	gHandler(w, req)
+	handler(w, req)
 
-	gz := GzipHandle(gHandler)
+	gz := GzipHandle(handler)
 	gz.ServeHTTP(w, req)
 }
