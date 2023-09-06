@@ -12,10 +12,9 @@ type Database struct {
 }
 
 // Connect to Postgre DB using connection string provided by cmd arguments or environment variable
-func Connect(connstring string) (Database, error) {
+func Connect(ctx context.Context, connstring string) (Database, error) {
 	var db Database
 
-	ctx := context.Background()
 	connConfig, err := pgx.ParseConfig(connstring)
 	if err != nil {
 		return db, err

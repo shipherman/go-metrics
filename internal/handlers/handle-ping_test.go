@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -43,7 +44,8 @@ func TestHandlePing(t *testing.T) {
 
 			h := NewHandler()
 
-			database, _ := db.Connect(tc.dsn)
+			ctx := context.Background()
+			database, _ := db.Connect(ctx, tc.dsn)
 			h.DBconn = database.Conn
 
 			h.HandlePing(w, req)

@@ -39,7 +39,8 @@ func main() {
 
 	// Identify wether use DB or file to save metrics
 	if cfg.DBDSN != "" {
-		database, err := db.Connect(cfg.DBDSN)
+		ctx := context.Background()
+		database, err := db.Connect(ctx, cfg.DBDSN)
 		if err != nil {
 			log.Println(err)
 		}
