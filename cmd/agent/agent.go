@@ -28,9 +28,10 @@ func main() {
 	m := storage.New()
 
 	// Init channels
-	done := make(chan struct{})
 	metricsCh := make(chan storage.MemStorage, cfg.RateLimit)
 	defer close(metricsCh)
+
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Collect data from MemStats and send to the server
 	// Gather facts
@@ -80,7 +81,7 @@ func main() {
 	}
 
 	// Gracefull shutdown
-	go func() {
+	go func(ctx context.Context) {
 		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		<-sigint
 		// send true to shutdown channel to close goroutines
@@ -89,9 +90,9 @@ func main() {
 		}
 
 		wg.Wait()
+		cancel()
 		log.Println("Agent shutted down")
-		close(done)
-	}()
+	}(ctx)
 
-	<-done
+	<-ctx.Done()
 }

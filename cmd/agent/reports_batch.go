@@ -21,7 +21,6 @@ func sendBatchReport(cfg Options, metrics []Metrics) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(data))
 
 	// Init request
 	request, err := http.NewRequest("POST", cfg.ServerAddress, bytes.NewBuffer([]byte{}))
