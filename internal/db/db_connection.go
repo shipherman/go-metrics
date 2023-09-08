@@ -25,7 +25,7 @@ func Connect(ctx context.Context, connstring string) (Database, error) {
 		return db, err
 	}
 
-	err = db.createTables()
+	err = db.CreateTables()
 	if err != nil {
 		return db, err
 	}

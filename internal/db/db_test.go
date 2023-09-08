@@ -2,19 +2,83 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"testing"
+	"time"
 
 	pgx "github.com/jackc/pgx/v5"
+	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"github.com/shipherman/go-metrics/internal/storage"
 	"github.com/stretchr/testify/require"
+
+	_ "github.com/lib/pq"
 )
 
 var dbc Database
 var dsn string
 
+var db *sql.DB
+
 func TestMain(m *testing.M) {
+	// Start a new docker pool
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		log.Fatalf("Could not construct pool: %s", err)
+	}
+
+	// Uses pool to try to connect to Docker
+	err = pool.Client.Ping()
+	if err != nil {
+		log.Fatalf("Could not connect to Docker: %s", err)
+	}
+
+	pg, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "postgres",
+		Tag:        "15",
+		Env: []string{
+			"POSTGRES_PASSWORD=pass",
+			"POSTGRES_USER=postgres",
+			"POSTGRES_DB=postgres",
+			"listen_addresses = 'localhost'",
+			"listen_port = '5432'",
+		},
+		ExposedPorts: []string{"5432/tcp"},
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"5432/tcp": {{HostIP: "localhost", HostPort: "5432/tcp"}},
+		},
+	}, func(config *docker.HostConfig) {
+		// set AutoRemove to true so that stopped container goes away by itself
+		config.AutoRemove = true
+		config.RestartPolicy = docker.RestartPolicy{
+			Name: "no",
+		}
+	})
+
+	if err != nil {
+		log.Fatalf("Could not start resource: %s", err)
+	}
+
+	pg.Expire(120)
+
+	hostAndPort := pg.GetHostPort("5432/tcp")
+	databaseUrl := fmt.Sprintf("postgres://postgres:pass@%s/postgres?sslmode=disable", hostAndPort)
+
+	log.Println("Connecting to database on url: ", databaseUrl)
+	pool.MaxWait = 20 * time.Second
+	if err = pool.Retry(func() error {
+		db, err = sql.Open("postgres", databaseUrl)
+		if err != nil {
+			return err
+		}
+		return db.Ping()
+	}); err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
+	}
+
 	dsn = os.Getenv("DATABASE_DSN")
 	ConnString, err := pgx.ParseConfig(dsn)
 	// For local tests
@@ -26,8 +90,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		fmt.Printf("error during connection to db: %s", err.Error())
 	}
-	dbc.createTables()
-	os.Exit(m.Run())
+
+	dbc.CreateTables()
+
+	code := m.Run()
+
+	os.Exit(code)
+
 }
 
 func BenchmarkWrite(b *testing.B) {
