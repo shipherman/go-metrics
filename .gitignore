@@ -12,10 +12,12 @@
 *.out
 
 # Binaries
+bin/
 cmd/agent/main
 cmd/agent/agent
 cmd/server/main
 cmd/server/server
+bin/
 metricstest
 
 # Dependency directories (remove the comment below to include it)
@@ -27,3 +29,6 @@ vendor/
 
 # logs
 *.log
+
+# local configs
+staticcheck.conf

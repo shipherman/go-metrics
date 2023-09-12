@@ -1,14 +1,13 @@
 package db
 
 import (
-    "github.com/shipherman/go-metrics/internal/storage"
-
+	"github.com/shipherman/go-metrics/internal/storage"
 )
 
-//Implements StorageWriter interface
+// RestoreData is restore data from DB
 func (db *Database) RestoreData(s *storage.MemStorage) error {
-    //to do
+	//to do
 
-    return nil
+	return nil
 
 }
