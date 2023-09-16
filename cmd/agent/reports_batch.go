@@ -3,9 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,12 +12,13 @@ import (
 )
 
 func sendBatchReport(cfg Options, metrics []Metrics) error {
-	var sha256sum string
+	// var sha256sum string
 
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		return err
 	}
+	// fmt.Println("raw data size: ", len(data))
 
 	// Init request
 	request, err := http.NewRequest("POST", cfg.ServerAddress, bytes.NewBuffer([]byte{}))
@@ -28,17 +26,24 @@ func sendBatchReport(cfg Options, metrics []Metrics) error {
 		return err
 	}
 
-	// Encrypt data and set Header
-	if cfg.Encrypt {
-		h := hmac.New(sha256.New, cfg.KeyByte)
-		h.Write(data)
-		sha256sum = hex.EncodeToString(h.Sum(nil))
-		request.Header.Set("HashSHA256", sha256sum)
-	}
-
 	data, err = compress(data)
 	if err != nil {
 		return err
+	}
+	// fmt.Println("compressed data size: ", len(data))
+
+	// Encrypt data and set Header
+	// if cfg.Encrypt {
+	// 	h := hmac.New(sha256.New, cfg.KeyByte)
+	// 	h.Write(data)
+	// 	sha256sum = hex.EncodeToString(h.Sum(nil))
+	// 	request.Header.Set("HashSHA256", sha256sum)
+	// }
+	if cfg.Encrypt {
+		data, err = Encrypt(cfg.CryptoKey, data)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Redefine request content
