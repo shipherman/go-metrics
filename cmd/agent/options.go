@@ -15,8 +15,10 @@ type Options struct {
 	ReportInterval   int    `env:"REPORT_INTERVAL"`
 	RateLimit        int    `env:"RATE_LIMIT"`
 	Key              string `env:"KEY"`
+	CryptoKey        string `env:"CRYPTO_KEY"`
 	KeyByte          []byte
-	Encrypt          bool
+
+	Encrypt bool
 }
 
 func parseOptions() (Options, error) {
@@ -33,6 +35,8 @@ func parseOptions() (Options, error) {
 		"Address of the server to send metrics")
 	flag.StringVar(&cfg.Key, "k", "",
 		"Encryption key")
+	flag.StringVar(&cfg.CryptoKey, "crypto-key", "",
+		"Private key path")
 	flag.IntVar(&cfg.RateLimit, "l", 3,
 		"Rate Limit")
 	flag.Parse()

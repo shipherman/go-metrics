@@ -8,12 +8,13 @@ import (
 )
 
 type Options struct {
-	Address  string `env:"ADDRESS"`
-	Interval int    `env:"STORE_INTERVAL"`
-	Filename string `env:"FILE_STORAGE_PATH"`
-	Restore  bool   `env:"RESTORE"`
-	DBDSN    string `env:"DATABASE_DSN"`
-	Key      string `env:"KEY"`
+	Address   string `env:"ADDRESS"`
+	Interval  int    `env:"STORE_INTERVAL"`
+	Filename  string `env:"FILE_STORAGE_PATH"`
+	Restore   bool   `env:"RESTORE"`
+	DBDSN     string `env:"DATABASE_DSN"`
+	Key       string `env:"KEY"`
+	CryptoKey string `env:"CRYPTO_KEY"`
 }
 
 func ParseOptions() (Options, error) {
@@ -36,6 +37,8 @@ func ParseOptions() (Options, error) {
 		"",
 		"Connection string in Postgres format")
 	flag.StringVar(&cfg.Key, "k", "", "Sing key")
+	flag.StringVar(&cfg.CryptoKey, "crypto-key", "",
+		"Public key path")
 	flag.Parse()
 
 	// get env vars
