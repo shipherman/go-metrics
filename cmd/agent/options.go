@@ -36,7 +36,7 @@ func parseOptions() (Options, error) {
 	flag.StringVar(&cfg.Key, "k", "",
 		"Encryption key")
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", "",
-		"Private key path")
+		"Public key path")
 	flag.IntVar(&cfg.RateLimit, "l", 3,
 		"Rate Limit")
 	flag.Parse()

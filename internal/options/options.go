@@ -38,7 +38,7 @@ func ParseOptions() (Options, error) {
 		"Connection string in Postgres format")
 	flag.StringVar(&cfg.Key, "k", "", "Sing key")
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", "",
-		"Public key path")
+		"Private key path")
 	flag.Parse()
 
 	// get env vars
