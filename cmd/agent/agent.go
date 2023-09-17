@@ -80,7 +80,7 @@ func main() {
 		}()
 	}
 
-	// Gracefull shutdown
+	// Gracefull shutdown here
 	go func(ctx context.Context) {
 		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 		<-sigint

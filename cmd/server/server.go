@@ -85,7 +85,7 @@ func main() {
 
 	log.Println("Started. Running")
 
-	// Graceful shutdown
+	// Graceful shutdown here
 	idleConnectionsClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)
