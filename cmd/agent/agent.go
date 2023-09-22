@@ -82,7 +82,7 @@ func main() {
 
 	// Gracefull shutdown
 	go func(ctx context.Context) {
-		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		<-sigint
 		// send true to shutdown channel to close goroutines
 		for w := 1; w <= cfg.RateLimit; w++ {
