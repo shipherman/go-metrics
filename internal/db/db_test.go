@@ -28,8 +28,10 @@ func TestMain(m *testing.M) {
 		fmt.Printf("error during connection to db: %s", err.Error())
 	}
 
-	dbc.CreateTables()
-
+	err = dbc.CreateTables()
+	if err != nil {
+		fmt.Printf("could not create tables: %s", err.Error())
+	}
 	code := m.Run()
 
 	os.Exit(code)

@@ -73,7 +73,10 @@ func main() {
 	// Interval used for file saving
 	go func() {
 		for {
-			store.Save(cfg.Interval, h.Store)
+			err = store.Save(cfg.Interval, h.Store)
+			if err != nil {
+				log.Println("Could not save data: ", err)
+			}
 		}
 	}()
 
