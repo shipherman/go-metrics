@@ -1,4 +1,8 @@
 // Package certgen used to generate asymmetric key pair
+//
+// To generate keypair run just certgen and
+// it will generate public.pem and private.pem
+// files in a current directory
 package main
 
 import (
@@ -9,7 +13,7 @@ import (
 	"os"
 )
 
-// GenerateKeyPair generates private and public keys at ./cert directory
+// GenerateKeyPair generates private and public keys at current directory
 func main() {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
