@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/shipherman/go-metrics/internal/db"
 	"github.com/shipherman/go-metrics/internal/handlers"
@@ -82,9 +84,21 @@ func main() {
 
 	// Define server parameters
 	server := http.Server{
-		Addr:    cfg.Address,
-		Handler: router,
+		Addr:         cfg.Address,
+		Handler:      router,
+		WriteTimeout: time.Second * 10,
 	}
+
+	// Register func to save data on Shutdown
+	// Add WaitGroup to sync shutdown
+	var wg sync.WaitGroup
+	wg.Add(1)
+	server.RegisterOnShutdown(func() {
+		if err := store.Write(h.Store); err != nil {
+			log.Printf("Error during saving data to file: %v", err)
+		}
+		wg.Done()
+	})
 
 	log.Println("Started. Running")
 
@@ -96,22 +110,26 @@ func main() {
 		<-sigint
 		log.Println("Shutting down server")
 
-		if err := store.Write(h.Store); err != nil {
-			log.Printf("Error during saving data to file: %v", err)
-		}
-
-		// Close file/db
-		defer store.Close()
-
+		// Shutdown server
 		if err := server.Shutdown(context.Background()); err != nil {
 			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
+
+		// Wait till registred shutdown function will be done
+		wg.Wait()
+
+		// Close file/db
+		store.Close()
+
 		close(idleConnectionsClosed)
+		log.Printf("HTTP server shutted down")
 	}()
 
 	// Run server
-	log.Fatal(server.ListenAndServe())
-
+	if err := server.ListenAndServe(); err != nil {
+		if err.Error() != "http: Server closed" {
+			log.Printf("HTTP server closed with: %v\n", err)
+		}
+	}
 	<-idleConnectionsClosed
-	log.Println("Server shutdown")
 }
