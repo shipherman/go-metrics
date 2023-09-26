@@ -33,21 +33,28 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Collect data from MemStats and send to the server
-	// Gather facts
-	go func(timer time.Duration) {
-		for {
-			time.Sleep(timer)
-			readMemStats(&m, metricsCh)
-		}
-	}(time.Second * time.Duration(cfg.PollInterval))
-
 	// Add wait group with RateLimit counter
 	var wg sync.WaitGroup
 	wg.Add(cfg.RateLimit)
 
 	// init Channel to shutdown goroutines
 	shtCh := make(chan bool)
+	shtTimerCh := make(chan bool)
+
+	// Collect data from MemStats and send to the server
+	// Gather facts
+	go func(timer time.Duration) {
+		for {
+			select {
+			case <-shtTimerCh:
+				log.Println("Closing timer goroutine")
+				return
+			default:
+				time.Sleep(timer)
+				readMemStats(&m, metricsCh)
+			}
+		}
+	}(time.Second * time.Duration(cfg.PollInterval))
 
 	// Create backoff for retrier
 	b := backoff.NewExponentialBackOff()
@@ -88,6 +95,9 @@ func main() {
 		for w := 1; w <= cfg.RateLimit; w++ {
 			shtCh <- true
 		}
+
+		// send true to Timer goroutine
+		shtTimerCh <- true
 
 		wg.Wait()
 		cancel()
