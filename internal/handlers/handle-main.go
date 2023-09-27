@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 // Return unsorted list of all the metrics
 //
 // ToDo: Implement sortable document
 func (h *Handler) HandleMain(w http.ResponseWriter, r *http.Request) {
+
+	time.Sleep(time.Second * 15)
+
 	//write static html page with all the items to the response; unsorted
 	body := `
         <!DOCTYPE html>

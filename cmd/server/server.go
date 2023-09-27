@@ -86,7 +86,8 @@ func main() {
 	server := http.Server{
 		Addr:         cfg.Address,
 		Handler:      router,
-		WriteTimeout: time.Second * 10,
+		WriteTimeout: time.Second * 5,
+		ReadTimeout:  time.Second * 5,
 	}
 
 	// Register func to save data on Shutdown
