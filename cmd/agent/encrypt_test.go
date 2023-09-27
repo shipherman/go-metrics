@@ -17,7 +17,10 @@ func TestEncrypt(t *testing.T) {
 	// Read broken key
 	keyPath := "brokenkey"
 	f, _ := os.Create(keyPath)
-	f.Write([]byte("brokey key"))
+	_, err = f.Write([]byte("brokey key"))
+	if err != nil {
+		panic(err)
+	}
 	f.Close()
 
 	_, err = Encrypt(keyPath, []byte("some data"))
