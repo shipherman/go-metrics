@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -60,7 +59,7 @@ func sendBatchReport(cfg Options, metrics []Metrics) error {
 }
 
 // Marshal metrics slice into JSON then send it to the server via sendBathReport() func.
-func ProcessBatch(ctx context.Context, cfg Options,
+func ProcessBatch(cfg Options,
 	metricsCh chan storage.MemStorage) error {
 	var metrics []Metrics
 

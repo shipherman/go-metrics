@@ -5,8 +5,11 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"os"
 )
+
+var ErrBrokenKeyFile = errors.New("public key file is broken")
 
 func Encrypt(publicKeyPath string, data []byte) ([]byte, error) {
 	publicKeyPEM, err := os.ReadFile(publicKeyPath)
@@ -14,6 +17,11 @@ func Encrypt(publicKeyPath string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 	publicKeyBlock, _ := pem.Decode(publicKeyPEM)
+	if publicKeyBlock == nil {
+		return nil, ErrBrokenKeyFile
+
+	}
+
 	publicKey, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes)
 	if err != nil {
 		return nil, err

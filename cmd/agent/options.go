@@ -23,7 +23,7 @@ type Options struct {
 	Encrypt          bool
 }
 
-func parseOptions() (Options, error) {
+func ParseOptions() (Options, error) {
 	var cfg Options
 	cfg.Encrypt = false
 
@@ -34,9 +34,13 @@ func parseOptions() (Options, error) {
 	}
 
 	// Parse cli parameters
-	flag.StringVar(&cfg.ConfigPath,
-		"config", "",
-		"Configuration file path")
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "config" {
+			flag.StringVar(&cfg.ConfigPath,
+				"config", "",
+				"Configuration file path")
+		}
+	})
 	flag.IntVar(&cfg.PollInterval, "p", 2,
 		"Frequensy in seconds for collecting metrics")
 	flag.IntVar(&cfg.MaxRetryInterval, "m", 4,
@@ -51,7 +55,6 @@ func parseOptions() (Options, error) {
 		"Public key path")
 	flag.IntVar(&cfg.RateLimit, "l", 3,
 		"Rate Limit")
-	flag.Parse()
 
 	// Read configuration file
 	if cfg.ConfigPath != "" {
