@@ -39,7 +39,7 @@ func sendBatchReport(cfg Options, metrics []Metrics) error {
 	request.Header.Set("Content-Type", contentType)
 	request.Header.Set("Content-Encoding", compression)
 	request.Header.Set("Accept-Encoding", compression)
-
+	request.Header.Set("X-Real-IP", cfg.RealIP)
 	client := &http.Client{}
 	resp, err := client.Do(request)
 

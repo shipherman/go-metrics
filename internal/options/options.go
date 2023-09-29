@@ -4,20 +4,23 @@ package options
 import (
 	"encoding/json"
 	"flag"
+	"net"
 	"os"
 
 	"github.com/caarlos0/env"
 )
 
 type Options struct {
-	Address    string `env:"ADDRESS" json:"address"`
-	Interval   int    `env:"STORE_INTERVAL" json:"store_interval"`
-	Filename   string `env:"FILE_STORAGE_PATH" json:"store_file"`
-	Restore    bool   `env:"RESTORE" json:"restore"`
-	DBDSN      string `env:"DATABASE_DSN" json:"database_dsn"`
-	Key        string `env:"KEY" json:"key"`
-	CryptoKey  string `env:"CRYPTO_KEY" json:"crypto_key"`
-	ConfigPath string `env:"CONFIG"`
+	Address             string `env:"ADDRESS" json:"address"`
+	Interval            int    `env:"STORE_INTERVAL" json:"store_interval"`
+	Filename            string `env:"FILE_STORAGE_PATH" json:"store_file"`
+	Restore             bool   `env:"RESTORE" json:"restore"`
+	DBDSN               string `env:"DATABASE_DSN" json:"database_dsn"`
+	Key                 string `env:"KEY" json:"key"`
+	CryptoKey           string `env:"CRYPTO_KEY" json:"crypto_key"`
+	ConfigPath          string `env:"CONFIG"`
+	TrustedSubnet       string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	TrustedSubnetParsed *net.IPNet
 }
 
 func ParseOptions() (Options, error) {
@@ -45,6 +48,10 @@ func ParseOptions() (Options, error) {
 	flag.StringVar(&cfg.Key, "k", "", "Sing key")
 	flag.StringVar(&cfg.CryptoKey, "crypto-key", "",
 		"Private key path")
+	flag.StringVar(&cfg.TrustedSubnet,
+		"t",
+		"192.168.1.0/24",
+		"Trusted subnet defines allowed subnet to receive requests")
 	flag.Parse()
 
 	// get env vars
@@ -58,6 +65,12 @@ func ParseOptions() (Options, error) {
 		if err != nil {
 			return cfg, err
 		}
+	}
+
+	// Executing subnet from TrustedSubnet parameter
+	_, cfg.TrustedSubnetParsed, err = net.ParseCIDR(cfg.TrustedSubnet)
+	if err != nil {
+		return cfg, err
 	}
 
 	return cfg, nil

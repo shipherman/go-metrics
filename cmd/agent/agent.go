@@ -103,7 +103,7 @@ func main() {
 			shtCh <- true
 		}
 
-		close(metricsCh)
+		defer close(metricsCh)
 		// send true to Timer goroutine
 		shtTimerCh <- true
 
