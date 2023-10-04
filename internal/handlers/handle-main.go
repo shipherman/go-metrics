@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -40,5 +41,8 @@ func (h *Handler) HandleMain(w http.ResponseWriter, r *http.Request) {
 	// respond to agent
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(body))
+	_, err := w.Write([]byte(body))
+	if err != nil {
+		log.Println("could not write response")
+	}
 }

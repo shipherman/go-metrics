@@ -1,0 +1,8 @@
+{
+"server_address":"localhost:8080",
+"max_retry_interval":4,
+"poll_interval":2,
+"report_interval":10,
+"rate_limit":3
+}
+

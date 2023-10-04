@@ -2,10 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,8 +11,6 @@ import (
 )
 
 func sendBatchReport(cfg Options, metrics []Metrics) error {
-	var sha256sum string
-
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		return err
@@ -28,17 +22,15 @@ func sendBatchReport(cfg Options, metrics []Metrics) error {
 		return err
 	}
 
-	// Encrypt data and set Header
-	if cfg.Encrypt {
-		h := hmac.New(sha256.New, cfg.KeyByte)
-		h.Write(data)
-		sha256sum = hex.EncodeToString(h.Sum(nil))
-		request.Header.Set("HashSHA256", sha256sum)
-	}
-
 	data, err = compress(data)
 	if err != nil {
 		return err
+	}
+	if cfg.Encrypt {
+		data, err = Encrypt(cfg.CryptoKey, data)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Redefine request content
@@ -67,7 +59,7 @@ func sendBatchReport(cfg Options, metrics []Metrics) error {
 }
 
 // Marshal metrics slice into JSON then send it to the server via sendBathReport() func.
-func ProcessBatch(ctx context.Context, cfg Options,
+func ProcessBatch(cfg Options,
 	metricsCh chan storage.MemStorage) error {
 	var metrics []Metrics
 

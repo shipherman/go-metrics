@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/shipherman/go-metrics/internal/db"
 	"github.com/shipherman/go-metrics/internal/handlers"
@@ -73,42 +75,62 @@ func main() {
 	// Interval used for file saving
 	go func() {
 		for {
-			store.Save(cfg.Interval, h.Store)
+			err = store.Save(cfg.Interval, h.Store)
+			if err != nil {
+				log.Println("Could not save data: ", err)
+			}
 		}
 	}()
 
 	// Define server parameters
 	server := http.Server{
-		Addr:    cfg.Address,
-		Handler: router,
+		Addr:         cfg.Address,
+		Handler:      router,
+		WriteTimeout: time.Second * 5,
+		ReadTimeout:  time.Second * 5,
 	}
 
-	log.Println("Started. Running")
-
-	// Graceful shutdown
-	idleConnectionsClosed := make(chan struct{})
-	go func() {
-		sigint := make(chan os.Signal, 1)
-		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-		<-sigint
-		log.Println("Shutting down server")
-
+	// Register func to save data on Shutdown
+	// Add WaitGroup to sync shutdown
+	var wg sync.WaitGroup
+	wg.Add(1)
+	server.RegisterOnShutdown(func() {
 		if err := store.Write(h.Store); err != nil {
 			log.Printf("Error during saving data to file: %v", err)
 		}
+		wg.Done()
+	})
 
-		// Close file/db
-		defer store.Close()
+	log.Println("Started. Running")
 
+	// Graceful shutdown here
+	idleConnectionsClosed := make(chan struct{})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		<-sigint
+		log.Println("Shutting down server")
+
+		// Shutdown server
 		if err := server.Shutdown(context.Background()); err != nil {
 			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
+
+		// Wait till registred shutdown function will be done
+		wg.Wait()
+
+		// Close file/db
+		store.Close()
+
 		close(idleConnectionsClosed)
+		log.Printf("HTTP server shutted down")
 	}()
 
 	// Run server
-	log.Fatal(server.ListenAndServe())
-
+	if err := server.ListenAndServe(); err != nil {
+		if err.Error() != "http: Server closed" {
+			log.Printf("HTTP server closed with: %v\n", err)
+		}
+	}
 	<-idleConnectionsClosed
-	log.Println("Server shutdown")
 }
