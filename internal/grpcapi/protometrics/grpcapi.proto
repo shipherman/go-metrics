@@ -2,7 +2,14 @@ syntax = "proto3";
 
 package grpcapi.protometrics;
 
-option go_package = "github.com/shipherman/go-metrics/internal/grpcapi/protometrics;protometrics";
+option go_package = "internal/grpcapi/protometrics/v1/gen;protometrics";
+
+service MetricsService {
+    rpc GetGauge(GetGaugeRequest) returns (GetGaugeResponse);
+    rpc UpdateGauge(UpdateGaugeRequest) returns (UpdateGaugeResponse);
+    rpc GetCounter(GetCounterRequest) returns (GetCounterResponse);
+    rpc UpdateCounter(UpdateCounterRequest) returns (UpdateCounterResponse);
+}
 
 message Counter {
     string name = 1;
@@ -13,14 +20,6 @@ message Gauge {
     string name = 1;
     double value = 2;
 }
-
-service MetricsService {
-    rpc GetGauge(GetGaugeRequest) returns (GetGaugeResponse);
-    rpc UpdateGauge(UpdateGaugeRequest) returns (UpdateGaugeResponse);
-    rpc GetCounter(GetCounterRequest) returns (GetCounterResponse);
-    rpc UpdateCounter(UpdateCounterRequest) returns (UpdateCounterResponse);
-}
-
 message GetGaugeRequest {
     string name = 1;
 }

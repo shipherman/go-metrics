@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.9.2
-// source: grpcapi.proto
+// source: internal/grpcapi/protometrics/grpcapi.proto
 
 package protometrics
 
@@ -216,5 +216,5 @@ var MetricsService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "grpcapi.proto",
+	Metadata: "internal/grpcapi/protometrics/grpcapi.proto",
 }

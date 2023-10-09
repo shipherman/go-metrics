@@ -3,7 +3,7 @@ package grpcservice
 import (
 	"context"
 
-	pb "github.com/shipherman/go-metrics/internal/grpcapi/protometrics"
+	pb "github.com/shipherman/go-metrics/internal/grpcapi/protometrics/v1/gen"
 
 	"github.com/shipherman/go-metrics/internal/storage"
 )

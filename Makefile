@@ -18,3 +18,7 @@ checkserver:
 .PHONY: checkagent
 checkagent:
 	bin/checker cmd/agent/*.go
+
+.PHONY: protobuild
+protobuild:
+	protoc --go_out=. --go_opt=paths=import --go-grpc_out=. --go-grpc_opt=paths=import internal/grpcapi/protometrics/grpcapi.proto
