@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MetricsService_GetGauge_FullMethodName      = "/grpcapi.protometrics.MetricsService/GetGauge"
-	MetricsService_UpdateGauge_FullMethodName   = "/grpcapi.protometrics.MetricsService/UpdateGauge"
-	MetricsService_GetCounter_FullMethodName    = "/grpcapi.protometrics.MetricsService/GetCounter"
-	MetricsService_UpdateCounter_FullMethodName = "/grpcapi.protometrics.MetricsService/UpdateCounter"
+	MetricsService_GetGauge_FullMethodName        = "/grpcapi.protometrics.MetricsService/GetGauge"
+	MetricsService_UpdateGauge_FullMethodName     = "/grpcapi.protometrics.MetricsService/UpdateGauge"
+	MetricsService_GetCounter_FullMethodName      = "/grpcapi.protometrics.MetricsService/GetCounter"
+	MetricsService_UpdateCounter_FullMethodName   = "/grpcapi.protometrics.MetricsService/UpdateCounter"
+	MetricsService_UpdateJSONBatch_FullMethodName = "/grpcapi.protometrics.MetricsService/UpdateJSONBatch"
 )
 
 // MetricsServiceClient is the client API for MetricsService service.
@@ -33,6 +34,7 @@ type MetricsServiceClient interface {
 	UpdateGauge(ctx context.Context, in *UpdateGaugeRequest, opts ...grpc.CallOption) (*UpdateGaugeResponse, error)
 	GetCounter(ctx context.Context, in *GetCounterRequest, opts ...grpc.CallOption) (*GetCounterResponse, error)
 	UpdateCounter(ctx context.Context, in *UpdateCounterRequest, opts ...grpc.CallOption) (*UpdateCounterResponse, error)
+	UpdateJSONBatch(ctx context.Context, in *JSONRequest, opts ...grpc.CallOption) (*JSONResponse, error)
 }
 
 type metricsServiceClient struct {
@@ -79,6 +81,15 @@ func (c *metricsServiceClient) UpdateCounter(ctx context.Context, in *UpdateCoun
 	return out, nil
 }
 
+func (c *metricsServiceClient) UpdateJSONBatch(ctx context.Context, in *JSONRequest, opts ...grpc.CallOption) (*JSONResponse, error) {
+	out := new(JSONResponse)
+	err := c.cc.Invoke(ctx, MetricsService_UpdateJSONBatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetricsServiceServer is the server API for MetricsService service.
 // All implementations must embed UnimplementedMetricsServiceServer
 // for forward compatibility
@@ -87,6 +98,7 @@ type MetricsServiceServer interface {
 	UpdateGauge(context.Context, *UpdateGaugeRequest) (*UpdateGaugeResponse, error)
 	GetCounter(context.Context, *GetCounterRequest) (*GetCounterResponse, error)
 	UpdateCounter(context.Context, *UpdateCounterRequest) (*UpdateCounterResponse, error)
+	UpdateJSONBatch(context.Context, *JSONRequest) (*JSONResponse, error)
 	mustEmbedUnimplementedMetricsServiceServer()
 }
 
@@ -105,6 +117,9 @@ func (UnimplementedMetricsServiceServer) GetCounter(context.Context, *GetCounter
 }
 func (UnimplementedMetricsServiceServer) UpdateCounter(context.Context, *UpdateCounterRequest) (*UpdateCounterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCounter not implemented")
+}
+func (UnimplementedMetricsServiceServer) UpdateJSONBatch(context.Context, *JSONRequest) (*JSONResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateJSONBatch not implemented")
 }
 func (UnimplementedMetricsServiceServer) mustEmbedUnimplementedMetricsServiceServer() {}
 
@@ -191,6 +206,24 @@ func _MetricsService_UpdateCounter_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MetricsService_UpdateJSONBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JSONRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricsServiceServer).UpdateJSONBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetricsService_UpdateJSONBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricsServiceServer).UpdateJSONBatch(ctx, req.(*JSONRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MetricsService_ServiceDesc is the grpc.ServiceDesc for MetricsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -213,6 +246,10 @@ var MetricsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateCounter",
 			Handler:    _MetricsService_UpdateCounter_Handler,
+		},
+		{
+			MethodName: "UpdateJSONBatch",
+			Handler:    _MetricsService_UpdateJSONBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

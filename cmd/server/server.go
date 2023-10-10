@@ -14,7 +14,7 @@ import (
 
 	"github.com/shipherman/go-metrics/internal/db"
 	"github.com/shipherman/go-metrics/internal/grpcapi/grpcservice"
-	"github.com/shipherman/go-metrics/internal/grpcapi/protometrics"
+	protometrics "github.com/shipherman/go-metrics/internal/grpcapi/protometrics/v1/gen"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/shipherman/go-metrics/internal/handlers"

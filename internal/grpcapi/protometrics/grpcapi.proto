@@ -44,7 +44,6 @@ message GetCounterRequest {
 
 message GetCounterResponse {
     Counter counter = 1;
-    string error = 2;
 }
 
 message UpdateCounterRequest {
@@ -53,5 +52,12 @@ message UpdateCounterRequest {
 
 message UpdateCounterResponse {
     Counter counter = 1;
-    string error = 2;
+}
+
+message JSONRequest {
+    string json = 1;
+}
+
+message JSONResponse {
+    string json = 1;
 }
