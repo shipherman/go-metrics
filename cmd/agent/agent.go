@@ -119,14 +119,17 @@ func main() {
 			shtCh <- true
 		}
 		// Close gRPC connection
-		defer ConnGrpc.Close()
 
-		defer close(metricsCh)
 		// send true to Timer goroutine
 		shtTimerCh <- true
 
 		wg.Wait()
+
+		close(metricsCh)
+
+		ConnGrpc.Close()
 		cancel()
+
 		log.Println("Agent shutted down")
 	}(ctx)
 
