@@ -11,7 +11,7 @@ func SendGRPC(m storage.MemStorage) error {
 	client := protometrics.NewMetricsServiceClient(ConnGrpc)
 
 	for k, v := range m.CounterData {
-		_, err := client.UpdateCounter(context.Background(), &protometrics.UpdateCounterRequest{
+		_, err := client.UpdateCounter(context.Background(), &protometrics.CounterRequest{
 			Counter: &protometrics.Counter{
 				Name:  k,
 				Delta: uint32(v),
@@ -23,7 +23,7 @@ func SendGRPC(m storage.MemStorage) error {
 	}
 
 	for k, v := range m.GaugeData {
-		_, err := client.UpdateGauge(context.Background(), &protometrics.UpdateGaugeRequest{
+		_, err := client.UpdateGauge(context.Background(), &protometrics.GaugeRequest{
 			Gauge: &protometrics.Gauge{
 				Name:  k,
 				Value: float64(v),

@@ -5,10 +5,10 @@ package grpcapi.protometrics;
 option go_package = "internal/grpcapi/protometrics/v1/gen;protometrics";
 
 service MetricsService {
-    rpc GetGauge(GetGaugeRequest) returns (GetGaugeResponse);
-    rpc UpdateGauge(UpdateGaugeRequest) returns (UpdateGaugeResponse);
-    rpc GetCounter(GetCounterRequest) returns (GetCounterResponse);
-    rpc UpdateCounter(UpdateCounterRequest) returns (UpdateCounterResponse);
+    rpc GetGauge(GaugeRequest) returns (GaugeResponse);
+    rpc UpdateGauge(GaugeRequest) returns (GaugeResponse);
+    rpc GetCounter(CounterRequest) returns (CounterResponse);
+    rpc UpdateCounter(CounterRequest) returns (CounterResponse);
 }
 
 message Counter {
@@ -20,44 +20,19 @@ message Gauge {
     string name = 1;
     double value = 2;
 }
-message GetGaugeRequest {
-    string name = 1;
-}
 
-message GetGaugeResponse {
-    Gauge gauge = 1;
-    string error = 2;
-}
-
-message UpdateGaugeRequest {
+message GaugeRequest {
     Gauge gauge = 1;
 }
 
-message UpdateGaugeResponse {
+message GaugeResponse {
     Gauge gauge = 1;
-    string error = 2;
 }
 
-message GetCounterRequest {
-    string name = 1;
-}
-
-message GetCounterResponse {
+message CounterRequest {
     Counter counter = 1;
 }
 
-message UpdateCounterRequest {
+message CounterResponse {
     Counter counter = 1;
-}
-
-message UpdateCounterResponse {
-    Counter counter = 1;
-}
-
-message JSONRequest {
-    string json = 1;
-}
-
-message JSONResponse {
-    string json = 1;
 }

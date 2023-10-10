@@ -19,22 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MetricsService_GetGauge_FullMethodName        = "/grpcapi.protometrics.MetricsService/GetGauge"
-	MetricsService_UpdateGauge_FullMethodName     = "/grpcapi.protometrics.MetricsService/UpdateGauge"
-	MetricsService_GetCounter_FullMethodName      = "/grpcapi.protometrics.MetricsService/GetCounter"
-	MetricsService_UpdateCounter_FullMethodName   = "/grpcapi.protometrics.MetricsService/UpdateCounter"
-	MetricsService_UpdateJSONBatch_FullMethodName = "/grpcapi.protometrics.MetricsService/UpdateJSONBatch"
+	MetricsService_GetGauge_FullMethodName      = "/grpcapi.protometrics.MetricsService/GetGauge"
+	MetricsService_UpdateGauge_FullMethodName   = "/grpcapi.protometrics.MetricsService/UpdateGauge"
+	MetricsService_GetCounter_FullMethodName    = "/grpcapi.protometrics.MetricsService/GetCounter"
+	MetricsService_UpdateCounter_FullMethodName = "/grpcapi.protometrics.MetricsService/UpdateCounter"
 )
 
 // MetricsServiceClient is the client API for MetricsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetricsServiceClient interface {
-	GetGauge(ctx context.Context, in *GetGaugeRequest, opts ...grpc.CallOption) (*GetGaugeResponse, error)
-	UpdateGauge(ctx context.Context, in *UpdateGaugeRequest, opts ...grpc.CallOption) (*UpdateGaugeResponse, error)
-	GetCounter(ctx context.Context, in *GetCounterRequest, opts ...grpc.CallOption) (*GetCounterResponse, error)
-	UpdateCounter(ctx context.Context, in *UpdateCounterRequest, opts ...grpc.CallOption) (*UpdateCounterResponse, error)
-	UpdateJSONBatch(ctx context.Context, in *JSONRequest, opts ...grpc.CallOption) (*JSONResponse, error)
+	GetGauge(ctx context.Context, in *GaugeRequest, opts ...grpc.CallOption) (*GaugeResponse, error)
+	UpdateGauge(ctx context.Context, in *GaugeRequest, opts ...grpc.CallOption) (*GaugeResponse, error)
+	GetCounter(ctx context.Context, in *CounterRequest, opts ...grpc.CallOption) (*CounterResponse, error)
+	UpdateCounter(ctx context.Context, in *CounterRequest, opts ...grpc.CallOption) (*CounterResponse, error)
 }
 
 type metricsServiceClient struct {
@@ -45,8 +43,8 @@ func NewMetricsServiceClient(cc grpc.ClientConnInterface) MetricsServiceClient {
 	return &metricsServiceClient{cc}
 }
 
-func (c *metricsServiceClient) GetGauge(ctx context.Context, in *GetGaugeRequest, opts ...grpc.CallOption) (*GetGaugeResponse, error) {
-	out := new(GetGaugeResponse)
+func (c *metricsServiceClient) GetGauge(ctx context.Context, in *GaugeRequest, opts ...grpc.CallOption) (*GaugeResponse, error) {
+	out := new(GaugeResponse)
 	err := c.cc.Invoke(ctx, MetricsService_GetGauge_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -54,8 +52,8 @@ func (c *metricsServiceClient) GetGauge(ctx context.Context, in *GetGaugeRequest
 	return out, nil
 }
 
-func (c *metricsServiceClient) UpdateGauge(ctx context.Context, in *UpdateGaugeRequest, opts ...grpc.CallOption) (*UpdateGaugeResponse, error) {
-	out := new(UpdateGaugeResponse)
+func (c *metricsServiceClient) UpdateGauge(ctx context.Context, in *GaugeRequest, opts ...grpc.CallOption) (*GaugeResponse, error) {
+	out := new(GaugeResponse)
 	err := c.cc.Invoke(ctx, MetricsService_UpdateGauge_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -63,8 +61,8 @@ func (c *metricsServiceClient) UpdateGauge(ctx context.Context, in *UpdateGaugeR
 	return out, nil
 }
 
-func (c *metricsServiceClient) GetCounter(ctx context.Context, in *GetCounterRequest, opts ...grpc.CallOption) (*GetCounterResponse, error) {
-	out := new(GetCounterResponse)
+func (c *metricsServiceClient) GetCounter(ctx context.Context, in *CounterRequest, opts ...grpc.CallOption) (*CounterResponse, error) {
+	out := new(CounterResponse)
 	err := c.cc.Invoke(ctx, MetricsService_GetCounter_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -72,18 +70,9 @@ func (c *metricsServiceClient) GetCounter(ctx context.Context, in *GetCounterReq
 	return out, nil
 }
 
-func (c *metricsServiceClient) UpdateCounter(ctx context.Context, in *UpdateCounterRequest, opts ...grpc.CallOption) (*UpdateCounterResponse, error) {
-	out := new(UpdateCounterResponse)
+func (c *metricsServiceClient) UpdateCounter(ctx context.Context, in *CounterRequest, opts ...grpc.CallOption) (*CounterResponse, error) {
+	out := new(CounterResponse)
 	err := c.cc.Invoke(ctx, MetricsService_UpdateCounter_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *metricsServiceClient) UpdateJSONBatch(ctx context.Context, in *JSONRequest, opts ...grpc.CallOption) (*JSONResponse, error) {
-	out := new(JSONResponse)
-	err := c.cc.Invoke(ctx, MetricsService_UpdateJSONBatch_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +83,10 @@ func (c *metricsServiceClient) UpdateJSONBatch(ctx context.Context, in *JSONRequ
 // All implementations must embed UnimplementedMetricsServiceServer
 // for forward compatibility
 type MetricsServiceServer interface {
-	GetGauge(context.Context, *GetGaugeRequest) (*GetGaugeResponse, error)
-	UpdateGauge(context.Context, *UpdateGaugeRequest) (*UpdateGaugeResponse, error)
-	GetCounter(context.Context, *GetCounterRequest) (*GetCounterResponse, error)
-	UpdateCounter(context.Context, *UpdateCounterRequest) (*UpdateCounterResponse, error)
-	UpdateJSONBatch(context.Context, *JSONRequest) (*JSONResponse, error)
+	GetGauge(context.Context, *GaugeRequest) (*GaugeResponse, error)
+	UpdateGauge(context.Context, *GaugeRequest) (*GaugeResponse, error)
+	GetCounter(context.Context, *CounterRequest) (*CounterResponse, error)
+	UpdateCounter(context.Context, *CounterRequest) (*CounterResponse, error)
 	mustEmbedUnimplementedMetricsServiceServer()
 }
 
@@ -106,20 +94,17 @@ type MetricsServiceServer interface {
 type UnimplementedMetricsServiceServer struct {
 }
 
-func (UnimplementedMetricsServiceServer) GetGauge(context.Context, *GetGaugeRequest) (*GetGaugeResponse, error) {
+func (UnimplementedMetricsServiceServer) GetGauge(context.Context, *GaugeRequest) (*GaugeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGauge not implemented")
 }
-func (UnimplementedMetricsServiceServer) UpdateGauge(context.Context, *UpdateGaugeRequest) (*UpdateGaugeResponse, error) {
+func (UnimplementedMetricsServiceServer) UpdateGauge(context.Context, *GaugeRequest) (*GaugeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateGauge not implemented")
 }
-func (UnimplementedMetricsServiceServer) GetCounter(context.Context, *GetCounterRequest) (*GetCounterResponse, error) {
+func (UnimplementedMetricsServiceServer) GetCounter(context.Context, *CounterRequest) (*CounterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCounter not implemented")
 }
-func (UnimplementedMetricsServiceServer) UpdateCounter(context.Context, *UpdateCounterRequest) (*UpdateCounterResponse, error) {
+func (UnimplementedMetricsServiceServer) UpdateCounter(context.Context, *CounterRequest) (*CounterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCounter not implemented")
-}
-func (UnimplementedMetricsServiceServer) UpdateJSONBatch(context.Context, *JSONRequest) (*JSONResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateJSONBatch not implemented")
 }
 func (UnimplementedMetricsServiceServer) mustEmbedUnimplementedMetricsServiceServer() {}
 
@@ -135,7 +120,7 @@ func RegisterMetricsServiceServer(s grpc.ServiceRegistrar, srv MetricsServiceSer
 }
 
 func _MetricsService_GetGauge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGaugeRequest)
+	in := new(GaugeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -147,13 +132,13 @@ func _MetricsService_GetGauge_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: MetricsService_GetGauge_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServiceServer).GetGauge(ctx, req.(*GetGaugeRequest))
+		return srv.(MetricsServiceServer).GetGauge(ctx, req.(*GaugeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MetricsService_UpdateGauge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateGaugeRequest)
+	in := new(GaugeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -165,13 +150,13 @@ func _MetricsService_UpdateGauge_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: MetricsService_UpdateGauge_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServiceServer).UpdateGauge(ctx, req.(*UpdateGaugeRequest))
+		return srv.(MetricsServiceServer).UpdateGauge(ctx, req.(*GaugeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MetricsService_GetCounter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCounterRequest)
+	in := new(CounterRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -183,13 +168,13 @@ func _MetricsService_GetCounter_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: MetricsService_GetCounter_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServiceServer).GetCounter(ctx, req.(*GetCounterRequest))
+		return srv.(MetricsServiceServer).GetCounter(ctx, req.(*CounterRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _MetricsService_UpdateCounter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateCounterRequest)
+	in := new(CounterRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -201,25 +186,7 @@ func _MetricsService_UpdateCounter_Handler(srv interface{}, ctx context.Context,
 		FullMethod: MetricsService_UpdateCounter_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServiceServer).UpdateCounter(ctx, req.(*UpdateCounterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MetricsService_UpdateJSONBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JSONRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MetricsServiceServer).UpdateJSONBatch(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MetricsService_UpdateJSONBatch_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServiceServer).UpdateJSONBatch(ctx, req.(*JSONRequest))
+		return srv.(MetricsServiceServer).UpdateCounter(ctx, req.(*CounterRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -246,10 +213,6 @@ var MetricsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateCounter",
 			Handler:    _MetricsService_UpdateCounter_Handler,
-		},
-		{
-			MethodName: "UpdateJSONBatch",
-			Handler:    _MetricsService_UpdateJSONBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
