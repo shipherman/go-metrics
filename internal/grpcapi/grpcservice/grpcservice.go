@@ -8,9 +8,6 @@ import (
 	"github.com/shipherman/go-metrics/internal/storage"
 )
 
-const counterType = "counter"
-const gaugeType = "gauge"
-
 type GServiceServer struct {
 	pb.UnimplementedMetricsServiceServer
 	Storage *storage.MemStorage
