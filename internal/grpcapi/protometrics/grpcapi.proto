@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package grpcapi.protometrics.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/shipherman/go-metrics/internal/grpcapi/protometrics/v1/gen;protometrics";
+
+service MetricsService {
+    // TODO: Add comments
+    rpc GetGauge(GaugeRequest) returns (GaugeResponse);
+    // TODO: Add comments
+    rpc UpdateGauge(GaugeRequest) returns (GaugeResponse);
+    // TODO: Add comments
+    rpc GetCounter(CounterRequest) returns (CounterResponse);
+    // TODO: Add comments
+    rpc UpdateCounterV1(CounterRequestV1) returns (CounterResponseV1);
+}
+
+message Counter {
+    string name = 1;
+    uint32 delta = 2 [(buf.validate.field).uint64.gt = 0];
+}
+
+message Gauge {
+    string name = 1;
+    double value = 2;
+}
+
+message GaugeRequest {
+    Gauge gauge = 1;
+}
+
+message GaugeResponse {
+    Gauge gauge = 1;
+}
+
+message CounterRequest {
+    Counter counter = 1;
+}
+
+message CounterResponse {
+    Counter counter = 1;
+}

@@ -13,6 +13,8 @@ import (
 
 	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/shipherman/go-metrics/internal/storage"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Signal Channel for graceful shutdown
@@ -23,6 +25,7 @@ var Config Options
 var mStorage storage.MemStorage
 var metricsCh chan storage.MemStorage
 var err error
+var ConnGrpc *grpc.ClientConn
 
 func init() {
 	// Parse cli options
@@ -32,6 +35,12 @@ func init() {
 	}
 	// Initiate new storage
 	mStorage = storage.New()
+
+	ConnGrpc, err = grpc.Dial(":9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func main() {
@@ -68,9 +77,12 @@ func main() {
 	b.InitialInterval = time.Duration(Config.PollInterval) * time.Second
 	b.MaxElapsedTime = b.InitialInterval * time.Duration(Config.MaxRetryInterval)
 
-	// func for retrier
+	// funcs for retrier
 	fn := func() error {
 		return ProcessBatch(Config, metricsCh)
+	}
+	fng := func() error {
+		return SendGRPC(mStorage)
 	}
 
 	// Send metrics to the server
@@ -78,6 +90,10 @@ func main() {
 		go func() {
 			for {
 				err := backoff.Retry(fn, b)
+				if err != nil {
+					log.Println(err)
+				}
+				err = backoff.Retry(fng, b)
 				if err != nil {
 					log.Println(err)
 				}
@@ -102,13 +118,18 @@ func main() {
 		for w := 1; w <= Config.RateLimit; w++ {
 			shtCh <- true
 		}
+		// Close gRPC connection
 
-		close(metricsCh)
 		// send true to Timer goroutine
 		shtTimerCh <- true
 
 		wg.Wait()
+
+		close(metricsCh)
+
+		ConnGrpc.Close()
 		cancel()
+
 		log.Println("Agent shutted down")
 	}(ctx)
 

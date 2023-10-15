@@ -4,6 +4,8 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -21,6 +23,7 @@ type Options struct {
 	KeyByte          []byte
 	ConfigPath       string `env:"CONFIG"`
 	Encrypt          bool
+	RealIP           string
 }
 
 func ParseOptions() (Options, error) {
@@ -72,9 +75,37 @@ func ParseOptions() (Options, error) {
 		cfg.KeyByte = []byte(cfg.Key)
 	}
 
+	// Get Agent IP address
+	ip, err := getIPAddr()
+	if err != nil {
+		return cfg, err
+	}
+	cfg.RealIP = ip
+
+	// View config in console
+	fmt.Println(cfg)
+
 	return cfg, nil
 }
 
+// Gets first non local loop Network interface address
+func getIPAddr() (string, error) {
+	addresses, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+
+	for _, addr := range addresses {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.String(), nil
+			}
+		}
+	}
+	return "", fmt.Errorf("no ethernet adapter found")
+}
+
+// Reads configuration file
 func readConfigFile(path string) (cfg Options, err error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

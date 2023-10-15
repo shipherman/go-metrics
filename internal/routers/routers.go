@@ -8,6 +8,7 @@ import (
 	"github.com/shipherman/go-metrics/internal/middleware/crypt"
 	"github.com/shipherman/go-metrics/internal/middleware/gzip"
 	"github.com/shipherman/go-metrics/internal/middleware/logger"
+	"github.com/shipherman/go-metrics/internal/middleware/netchecker"
 	"github.com/shipherman/go-metrics/internal/options"
 )
 
@@ -19,6 +20,7 @@ func InitRouter(cfg options.Options, h handlers.Handler) (chi.Router, error) {
 	if cfg.Key != "" {
 		router.Use(crypt.Decrypt(cfg.CryptoKey))
 	}
+	router.Use(netchecker.CheckSubnet(cfg.TrustedSubnetParsed))
 	router.Use(gzip.GzipHandle)
 	router.Get("/", h.HandleMain)
 	router.Get("/ping", h.HandlePing)

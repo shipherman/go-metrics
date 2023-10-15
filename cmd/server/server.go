@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,10 +13,15 @@ import (
 	"time"
 
 	"github.com/shipherman/go-metrics/internal/db"
+	"github.com/shipherman/go-metrics/internal/grpcapi/grpcservice"
+	protometrics "github.com/shipherman/go-metrics/internal/grpcapi/protometrics/v1/gen"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/shipherman/go-metrics/internal/handlers"
 	"github.com/shipherman/go-metrics/internal/options"
 	"github.com/shipherman/go-metrics/internal/routers"
 	"github.com/shipherman/go-metrics/internal/storage"
+	"google.golang.org/grpc"
 )
 
 var buildVersion string
@@ -82,19 +88,39 @@ func main() {
 		}
 	}()
 
-	// Define server parameters
-	server := http.Server{
+	// Errorgroup for grpc and http server listeners
+	eg, _ := errgroup.WithContext(context.Background())
+
+	// Define http server parameters
+	hServer := http.Server{
 		Addr:         cfg.Address,
 		Handler:      router,
 		WriteTimeout: time.Second * 5,
 		ReadTimeout:  time.Second * 5,
 	}
 
+	// gRPC server init and run
+
+	tcpListen, err := net.Listen("tcp", ":9090")
+	if err != nil {
+		log.Fatal(err)
+	}
+	gServer := grpc.NewServer()
+	protometrics.RegisterMetricsServiceServer(gServer, &grpcservice.GServiceServer{Storage: &h.Store})
+	// Run grpc
+	eg.Go(func() (err error) {
+		return gServer.Serve(tcpListen)
+	})
+	// Run http server
+	eg.Go(func() (err error) {
+		return hServer.ListenAndServe()
+	})
+
 	// Register func to save data on Shutdown
 	// Add WaitGroup to sync shutdown
 	var wg sync.WaitGroup
 	wg.Add(1)
-	server.RegisterOnShutdown(func() {
+	hServer.RegisterOnShutdown(func() {
 		if err := store.Write(h.Store); err != nil {
 			log.Printf("Error during saving data to file: %v", err)
 		}
@@ -112,7 +138,7 @@ func main() {
 		log.Println("Shutting down server")
 
 		// Shutdown server
-		if err := server.Shutdown(context.Background()); err != nil {
+		if err := hServer.Shutdown(context.Background()); err != nil {
 			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
 
@@ -126,11 +152,5 @@ func main() {
 		log.Printf("HTTP server shutted down")
 	}()
 
-	// Run server
-	if err := server.ListenAndServe(); err != nil {
-		if err.Error() != "http: Server closed" {
-			log.Printf("HTTP server closed with: %v\n", err)
-		}
-	}
 	<-idleConnectionsClosed
 }
