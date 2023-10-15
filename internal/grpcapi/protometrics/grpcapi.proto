@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package grpcapi.protometrics;
 
+import "buf/validate/validate.proto";
+
 option go_package = "internal/grpcapi/protometrics/v1/gen;protometrics";
 
 service MetricsService {
@@ -13,7 +15,7 @@ service MetricsService {
 
 message Counter {
     string name = 1;
-    uint32 delta = 2;
+    uint32 delta = 2 [(buf.validate.field).uint64.gt = 0];
 }
 
 message Gauge {
