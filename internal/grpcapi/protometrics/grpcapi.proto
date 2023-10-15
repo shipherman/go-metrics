@@ -11,6 +11,7 @@ service MetricsService {
     rpc GetGauge(GaugeRequest) returns (GaugeResponse);
     // TODO: Add comments
     rpc UpdateGauge(GaugeRequest) returns (GaugeResponse);
+    // TODO: Add comments
     rpc GetCounter(CounterRequest) returns (CounterResponse);
     // TODO: Add comments
     rpc UpdateCounterV1(CounterRequestV1) returns (CounterResponseV1);
