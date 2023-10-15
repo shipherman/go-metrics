@@ -7,6 +7,7 @@ import "buf/validate/validate.proto";
 option go_package = "github.com/shipherman/go-metrics/internal/grpcapi/protometrics/v1/gen;protometrics";
 
 service MetricsService {
+    // TODO: Add comments
     rpc GetGauge(GaugeRequest) returns (GaugeResponse);
     rpc UpdateGauge(GaugeRequest) returns (GaugeResponse);
     rpc GetCounter(CounterRequest) returns (CounterResponse);
