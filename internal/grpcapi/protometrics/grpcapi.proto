@@ -10,7 +10,8 @@ service MetricsService {
     rpc GetGauge(GaugeRequest) returns (GaugeResponse);
     rpc UpdateGauge(GaugeRequest) returns (GaugeResponse);
     rpc GetCounter(CounterRequest) returns (CounterResponse);
-    rpc UpdateCounter(CounterRequest) returns (CounterResponse);
+    // TODO: Add comments
+    rpc UpdateCounterV1(CounterRequestV1) returns (CounterResponseV1);
 }
 
 message Counter {
